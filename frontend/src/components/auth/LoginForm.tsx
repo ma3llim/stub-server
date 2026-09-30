@@ -32,7 +32,7 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-                <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
+                <label htmlFor="email" className="mb-2 block text-sm font-medium text-text-secondary">
                     Email
                 </label>
 
@@ -44,12 +44,12 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
                     placeholder="you@example.com"
                     required
                     autoComplete="email"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+                    className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-text-primary outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
             </div>
 
             <div>
-                <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="mb-2 block text-sm font-medium text-text-secondary">
                     Password
                 </label>
 
@@ -61,16 +61,16 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
                     placeholder="••••••••"
                     required
                     autoComplete="current-password"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+                    className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-text-primary outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
             </div>
 
-            {error && <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
+            {error && <div className="rounded-lg border border-danger/20 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div>}
 
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-gray-900 px-4 py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-lg bg-primary px-4 py-3 font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
                 {loading ? "Signing in..." : "Sign in"}
             </button>

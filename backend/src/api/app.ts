@@ -1,8 +1,10 @@
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import express from "express";
-import pinoHttp from "pino-http";
 import authRoutes from "./auth/auth.routes.js";
+import mockApiRoutes from "./mock-api/mock-api.routes.js";
+import { pinoHttp } from "pino-http";
+import pino from "pino";
 
 const app = express();
 
@@ -15,7 +17,12 @@ app.use(
 );
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
-app.use(pinoHttp());
+
+const logger = pino({
+    level: process.env.LOG_LEVEL || "info",
+});
+
+app.use(pinoHttp({ logger }));
 
 app.get("/health", (_req, res) => {
     res.status(200).json({
@@ -25,5 +32,6 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/mock-apis", mockApiRoutes);
 
 export default app;
