@@ -11,7 +11,7 @@ function findScenario(scenarios: MockScenario[], scenarioId: string): MockScenar
 }
 
 export async function createScenario(userId: string, mockApiId: string, data: CreateScenarioInput): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId)) {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
         return null;
     }
 
@@ -31,6 +31,9 @@ export async function createScenario(userId: string, mockApiId: string, data: Cr
 
     mockApi.scenarios.push(scenario);
 
+    /*
+     * First scenario becomes active automatically.
+     */
     if (!mockApi.activeScenarioId) {
         mockApi.activeScenarioId = scenario._id;
     }
@@ -41,14 +44,11 @@ export async function createScenario(userId: string, mockApiId: string, data: Cr
 }
 
 export async function getScenarios(userId: string, mockApiId: string): Promise<MockScenario[] | null> {
-    if (!mongoose.isValidObjectId(mockApiId)) {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
         return null;
     }
 
-    const mockApi = await MockApi.findOne({
-        _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
-    });
+    const mockApi = await MockApi.findOne({ _id: toObjectId(mockApiId), userId: toObjectId(userId) });
 
     if (!mockApi) {
         return null;
@@ -58,7 +58,7 @@ export async function getScenarios(userId: string, mockApiId: string): Promise<M
 }
 
 export async function getScenarioById(userId: string, mockApiId: string, scenarioId: string): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(scenarioId)) {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(scenarioId)) {
         return null;
     }
 
@@ -71,13 +71,29 @@ export async function getScenarioById(userId: string, mockApiId: string, scenari
         return null;
     }
 
-    const scenario = findScenario(mockApi.scenarios, scenarioId);
+    return findScenario(mockApi.scenarios, scenarioId) ?? null;
+}
 
-    return scenario ?? null;
+export async function getActiveScenario(userId: string, mockApiId: string): Promise<MockScenario | null> {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
+        return null;
+    }
+
+    const mockApi = await MockApi.findOne({ _id: toObjectId(mockApiId), userId: toObjectId(userId) });
+
+    if (!mockApi) {
+        return null;
+    }
+
+    if (!mockApi.activeScenarioId) {
+        return null;
+    }
+
+    return findScenario(mockApi.scenarios, mockApi.activeScenarioId.toString()) ?? null;
 }
 
 export async function updateScenario(userId: string, mockApiId: string, scenarioId: string, data: UpdateScenarioInput): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(scenarioId)) {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(scenarioId)) {
         return null;
     }
 
@@ -104,7 +120,7 @@ export async function updateScenario(userId: string, mockApiId: string, scenario
 }
 
 export async function deleteScenario(userId: string, mockApiId: string, scenarioId: string): Promise<boolean> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(scenarioId)) {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(scenarioId)) {
         return false;
     }
 
@@ -127,6 +143,11 @@ export async function deleteScenario(userId: string, mockApiId: string, scenario
 
     mockApi.scenarios.splice(scenarioIndex, 1);
 
+    /*
+     * If active scenario was deleted,
+     * automatically select the first remaining
+     * scenario.
+     */
     if (wasActive) {
         const nextScenario = mockApi.scenarios[0];
 
@@ -139,7 +160,7 @@ export async function deleteScenario(userId: string, mockApiId: string, scenario
 }
 
 export async function activateScenario(userId: string, mockApiId: string, scenarioId: string): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(scenarioId)) {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(scenarioId)) {
         return null;
     }
 

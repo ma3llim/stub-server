@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { HttpMethod, MockApi } from "../../api/mock-api.api";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Bot } from "lucide-react";
 import ScenarioList from "./ScenarioList";
+import ScenarioChat from "../ai/ScenarioChat";
 
 interface ApiEndpointProps {
     mockApi: MockApi;
@@ -21,6 +22,7 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
     const [expanded, setExpanded] = useState(false);
     const [scenariosExpanded, setScenariosExpanded] = useState(true);
     const [activeScenarioId, setActiveScenarioId] = useState(mockApi.activeScenarioId);
+    const [chatOpen, setChatOpen] = useState(false);
 
     return (
         <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900">
@@ -82,10 +84,19 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                             <button type="button" onClick={() => onDelete(mockApi)} className="rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950">
                                 Delete
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => setChatOpen(true)}
+                                className="flex items-center gap-2 rounded-lg border border-indigo-800 px-4 py-2 text-sm font-medium text-indigo-400 transition hover:bg-indigo-950"
+                            >
+                                <Bot className="h-4 w-4" />
+                                AI Assistant
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
+            {chatOpen && <ScenarioChat mockApiId={mockApi._id} onClose={() => setChatOpen(false)} />}
         </div>
     );
 }
