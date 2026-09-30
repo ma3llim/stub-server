@@ -97,27 +97,48 @@ export default function Dashboard() {
                 </div>
             </header>
 
-            <main className="mx-auto max-w-7xl px-6 py-8">
+            <main className="mx-auto w-full max-w-7xl px-6 py-8">
                 <div className="mb-8 flex items-end justify-between">
                     <div>
-                        <p className="text-sm font-medium text-gray-500">API Documentation</p>
-
+                        <p className="text-sm font-medium text-indigo-400">Mock API Platform</p>
                         <h2 className="mt-1 text-2xl font-bold text-white">API Explorer</h2>
-
-                        <p className="mt-2 text-sm text-gray-400">Explore and manage your mock API endpoints.</p>
+                        <p className="mt-2 text-sm text-gray-400">Create, configure, and run mock APIs for development and testing.</p>
                     </div>
-
-                    <button type="button" onClick={handleCreate} className="flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-gray-900 shadow-sm hover:bg-gray-200">
+                    <button
+                        type="button"
+                        onClick={handleCreate}
+                        className="flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-gray-200"
+                    >
                         <Plus className="h-4 w-4" />
                         Create API
                     </button>
+                </div>
+
+                <div className="mb-8 rounded-lg border border-gray-800 bg-gray-900">
+                    <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
+
+                                <h3 className="text-sm font-semibold text-white">Mock Server</h3>
+
+                                <span className="rounded-full border border-green-900 bg-green-950/50 px-2 py-0.5 text-xs font-medium text-green-400">Running</span>
+                            </div>
+
+                            <p className="mt-1 text-xs text-gray-500">Your mock APIs are served from this server.</p>
+                        </div>
+
+                        <div className="rounded-md border border-gray-800 bg-gray-950 px-4 py-2">
+                            <span className="font-mono text-sm text-indigo-400">{import.meta.env.VITE_MOCK_SERVER_URL}</span>
+                        </div>
+                    </div>
                 </div>
 
                 {error && <div className="mb-6 rounded-lg border border-red-900 bg-red-950/50 px-4 py-3 text-sm text-red-400">{error}</div>}
 
                 {loading ? (
                     <div className="rounded-lg border border-gray-800 bg-gray-900 px-6 py-16 text-center">
-                        <p className="text-sm text-gray-400">Loading APIs...</p>
+                        <p className="text-sm text-gray-400">Loading mock APIs...</p>
                     </div>
                 ) : (
                     <ApiExplorer mockApis={mockApis} onEdit={handleEdit} onDelete={setDeletingApi} />

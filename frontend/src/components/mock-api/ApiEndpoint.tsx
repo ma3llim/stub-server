@@ -105,7 +105,7 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                     </div>
                 </div>
             )}
-            {chatOpen && <ScenarioChat mockApiId={mockApi._id} onClose={() => setChatOpen(false)} />}
+            {chatOpen && <ScenarioChat mockApiId={mockApi._id} onClose={() => setChatOpen(false)} onScenarioChanged={handleScenarioChanged} />}
         </div>
     );
 }

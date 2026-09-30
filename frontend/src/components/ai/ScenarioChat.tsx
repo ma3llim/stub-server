@@ -83,7 +83,7 @@ export default function ScenarioChat({ mockApiId, onClose, onScenarioChanged }: 
     }
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex h-[600px] w-[400px] flex-col overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
+        <div className="fixed bottom-6 right-6 z-50 flex h-[600px] w-[450px] flex-col overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <div>
                     <h3 className="text-sm font-semibold text-text-primary">AI Scenario Assistant</h3>
@@ -111,7 +111,19 @@ export default function ScenarioChat({ mockApiId, onClose, onScenarioChanged }: 
 
                 {loading && (
                     <div className="flex justify-start">
-                        <div className="rounded-lg bg-surface-hover px-3 py-2 text-sm text-text-muted">Thinking...</div>
+                        <div className="rounded-lg bg-surface-hover px-3 py-2 text-sm font-medium">
+                            <div className="flex items-center gap-1">
+                                <span className="animate-shimmer bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-400 bg-[length:200%_100%] bg-clip-text text-transparent">
+                                    AI is thinking
+                                </span>
+
+                                <span className="flex items-center gap-0.5">
+                                    <span className="thinking-dot dot-1" />
+                                    <span className="thinking-dot dot-2" />
+                                    <span className="thinking-dot dot-3" />
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
@@ -123,7 +135,7 @@ export default function ScenarioChat({ mockApiId, onClose, onScenarioChanged }: 
                         onChange={(event) => setInput(event.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Ask me to create or update a scenario..."
-                        rows={2}
+                        rows={1}
                         disabled={loading}
                         className="min-h-[44px] flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-primary"
                     />
