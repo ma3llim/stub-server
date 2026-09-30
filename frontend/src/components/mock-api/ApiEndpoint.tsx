@@ -1,7 +1,7 @@
 import { useState } from "react";
-
 import type { HttpMethod, MockApi } from "../../api/mock-api.api";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import ScenarioList from "./ScenarioList";
 
 interface ApiEndpointProps {
     mockApi: MockApi;
@@ -19,6 +19,8 @@ const methodStyles: Record<HttpMethod, string> = {
 
 export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointProps) {
     const [expanded, setExpanded] = useState(false);
+    const [scenariosExpanded, setScenariosExpanded] = useState(true);
+    const [activeScenarioId, setActiveScenarioId] = useState(mockApi.activeScenarioId);
 
     return (
         <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900">
@@ -31,31 +33,12 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
 
             {expanded && (
                 <div className="border-t border-gray-800 bg-gray-900">
-                    <div className="space-y-7 p-6">
+                    <div className="space-y-4 p-6">
                         <div>
                             <h3 className="text-base font-semibold text-white">{mockApi.name}</h3>
 
                             {mockApi.description && <p className="mt-2 text-sm leading-6 text-gray-400">{mockApi.description}</p>}
                         </div>
-
-                        <section>
-                            <h4 className="mb-3 text-sm font-semibold text-white">Scenarios</h4>
-
-                            {mockApi.scenarios.length === 0 ? (
-                                <div className="rounded-lg border border-dashed border-gray-700 bg-gray-950 p-5 text-sm text-gray-500">No scenarios configured yet.</div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {mockApi.scenarios.map((scenario) => (
-                                        <div key={scenario._id} className="flex items-center justify-between rounded-lg border border-gray-800 px-4 py-3">
-                                            <span className="text-sm font-medium text-gray-200">{scenario.name}</span>
-
-                                            <span className="font-mono text-xs text-gray-500">{scenario.statusCode}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </section>
-
                         <section>
                             <h4 className="mb-3 text-sm font-semibold text-white">Endpoint</h4>
 
@@ -65,12 +48,38 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                             </div>
                         </section>
 
+                        <section className="overflow-hidden rounded-lg border border-gray-800">
+                            <button
+                                type="button"
+                                onClick={() => setScenariosExpanded((value) => !value)}
+                                className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-gray-800"
+                            >
+                                <div>
+                                    <h4 className="text-sm font-semibold text-white">Response Scenarios</h4>
+
+                                    <p className="mt-1 text-xs text-gray-500">Configure different responses for this endpoint</p>
+                                </div>
+
+                                {scenariosExpanded ? <ChevronUp className="h-4 w-4 text-gray-500" /> : <ChevronDown className="h-4 w-4 text-gray-500" />}
+                            </button>
+
+                            {scenariosExpanded && (
+                                <div className="border-t border-gray-800 p-4">
+                                    <ScenarioList mockApiId={mockApi._id} activeScenarioId={activeScenarioId} onActiveScenarioChange={setActiveScenarioId} />
+                                </div>
+                            )}
+                        </section>
+
                         <div className="flex justify-end gap-3 border-t border-gray-800 pt-5">
-                            <button type="button" onClick={() => onEdit(mockApi)} className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800">
+                            <button
+                                type="button"
+                                onClick={() => onEdit(mockApi)}
+                                className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-800"
+                            >
                                 Edit
                             </button>
 
-                            <button type="button" onClick={() => onDelete(mockApi)} className="rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-950">
+                            <button type="button" onClick={() => onDelete(mockApi)} className="rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950">
                                 Delete
                             </button>
                         </div>
