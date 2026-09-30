@@ -118,6 +118,7 @@ export async function chatWithScenarioAgent(userId: string, mockApiId: string, m
                 messages.push({ role: "tool", tool_call_id: toolCall.id, content: JSON.stringify(result) });
             }
         } catch (error) {
+            console.log(error);
             throw error;
         }
     }

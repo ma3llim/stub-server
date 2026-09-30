@@ -21,8 +21,12 @@ const methodStyles: Record<HttpMethod, string> = {
 export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointProps) {
     const [expanded, setExpanded] = useState(false);
     const [scenariosExpanded, setScenariosExpanded] = useState(true);
-    const [activeScenarioId, setActiveScenarioId] = useState(mockApi.activeScenarioId);
     const [chatOpen, setChatOpen] = useState(false);
+    const [scenarioRefreshTrigger, setScenarioRefreshTrigger] = useState(0);
+
+    function handleScenarioChanged() {
+        setScenarioRefreshTrigger((current) => current + 1);
+    }
 
     return (
         <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900">
@@ -67,7 +71,12 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
 
                             {scenariosExpanded && (
                                 <div className="border-t border-gray-800 p-4">
-                                    <ScenarioList mockApiId={mockApi._id} activeScenarioId={activeScenarioId} onActiveScenarioChange={setActiveScenarioId} />
+                                    <ScenarioList
+                                        mockApiId={mockApi._id}
+                                        activeScenarioId={mockApi.activeScenarioId}
+                                        onActiveScenarioChange={handleScenarioChanged}
+                                        refreshTrigger={scenarioRefreshTrigger}
+                                    />
                                 </div>
                             )}
                         </section>

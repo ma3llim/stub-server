@@ -9,9 +9,10 @@ interface ScenarioListProps {
     mockApiId: string;
     activeScenarioId?: string;
     onActiveScenarioChange?: (scenarioId: string) => void;
+    refreshTrigger?: number;
 }
 
-export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScenarioChange }: ScenarioListProps) {
+export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScenarioChange, refreshTrigger = 0 }: ScenarioListProps) {
     const [scenarios, setScenarios] = useState<MockScenario[]>([]);
 
     const [loading, setLoading] = useState(true);
@@ -42,7 +43,7 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
 
     useEffect(() => {
         void loadScenarios();
-    }, [mockApiId]);
+    }, [mockApiId, refreshTrigger]);
 
     async function handleActivate(scenarioId: string) {
         try {
@@ -51,6 +52,9 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
             await activateScenario(mockApiId, scenarioId);
 
             onActiveScenarioChange?.(scenarioId);
+
+            // Make sure the scenario list is also fresh.
+            await loadScenarios();
         } catch (error: any) {
             setError(error?.response?.data?.message ?? "Failed to activate scenario.");
         }
@@ -135,8 +139,11 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
                                             className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition"
                                         >
                                             <span className="text-text-muted">{isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</span>
+
                                             <span className="truncate text-sm font-medium text-text-primary">{scenario.name}</span>
+
                                             <span className="rounded-md bg-surface-hover px-2 py-1 font-mono text-xs text-text-secondary">{scenario.statusCode}</span>
+
                                             {isActive && <span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">Active</span>}
                                         </button>
 
@@ -144,7 +151,7 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
                                             {!isActive && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleActivate(scenario._id)}
+                                                    onClick={() => void handleActivate(scenario._id)}
                                                     className="rounded-md px-2.5 py-1.5 text-xs font-medium text-text-secondary transition hover:bg-surface-hover hover:text-text-primary"
                                                 >
                                                     Activate

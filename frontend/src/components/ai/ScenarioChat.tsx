@@ -1,72 +1,73 @@
-import { Bot, Send, X } from "lucide-react";
-
+import { useState } from "react";
 import { sendAiMessage } from "../../api/ai.api";
-import { useState, type FormEvent } from "react";
 
-interface ScenarioChatProps {
-    mockApiId: string;
-    onClose: () => void;
-}
-
-interface ChatMessage {
-    id: string;
+interface Message {
     role: "user" | "assistant";
     content: string;
 }
 
-export default function ScenarioChat({ mockApiId, onClose }: ScenarioChatProps) {
-    const [message, setMessage] = useState("");
-    const [loading, setLoading] = useState(false);
+interface ScenarioChatProps {
+    mockApiId: string;
+    onClose: () => void;
+    onScenarioChanged?: () => void;
+}
 
-    const [messages, setMessages] = useState<ChatMessage[]>([
+export default function ScenarioChat({ mockApiId, onClose, onScenarioChanged }: ScenarioChatProps) {
+    const [messages, setMessages] = useState<Message[]>([
         {
-            id: crypto.randomUUID(),
             role: "assistant",
             content: "Hi! I can create, update, delete, activate, or list scenarios for this API.",
         },
     ]);
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-        event.preventDefault();
+    const [input, setInput] = useState("");
+    const [loading, setLoading] = useState(false);
 
-        const trimmedMessage = message.trim();
+    async function handleSend() {
+        const message = input.trim();
 
-        if (!trimmedMessage || loading) {
+        if (!message || loading) {
             return;
         }
 
-        const userMessage: ChatMessage = {
-            id: crypto.randomUUID(),
-            role: "user",
-            content: trimmedMessage,
-        };
+        setMessages((current) => [
+            ...current,
+            {
+                role: "user",
+                content: message,
+            },
+        ]);
 
-        setMessages((current) => [...current, userMessage]);
-
-        setMessage("");
+        setInput("");
         setLoading(true);
 
         try {
             const response = await sendAiMessage({
                 mockApiId,
-                message: trimmedMessage,
+                message,
             });
 
             setMessages((current) => [
                 ...current,
                 {
-                    id: crypto.randomUUID(),
                     role: "assistant",
                     content: response,
                 },
             ]);
+
+            /*
+             * AI may have created, updated, deleted,
+             * or activated a scenario.
+             *
+             * Tell the parent to refresh the data.
+             */
+            onScenarioChanged?.();
         } catch (error: any) {
             setMessages((current) => [
                 ...current,
                 {
-                    id: crypto.randomUUID(),
                     role: "assistant",
-                    content: error.response?.data?.message ?? "Something went wrong while processing your request.",
+                    content: error?.response?.data?.message ?? "Something went wrong while processing your request.",
                 },
             ]);
         } finally {
@@ -74,77 +75,68 @@ export default function ScenarioChat({ mockApiId, onClose }: ScenarioChatProps) 
         }
     }
 
+    function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            void handleSend();
+        }
+    }
+
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/60 p-4 sm:items-center">
-            <div className="flex h-[650px] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-gray-800 bg-gray-950 shadow-2xl">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-gray-800 px-5 py-4">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
-                            <Bot className="h-5 w-5 text-white" />
-                        </div>
+        <div className="fixed bottom-6 right-6 z-50 flex h-[600px] w-[400px] flex-col overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <div>
+                    <h3 className="text-sm font-semibold text-text-primary">AI Scenario Assistant</h3>
 
-                        <div>
-                            <h2 className="text-sm font-semibold text-white">Scenario Assistant</h2>
-
-                            <p className="text-xs text-gray-500">Manage scenarios using natural language</p>
-                        </div>
-                    </div>
-
-                    <button type="button" onClick={onClose} className="rounded-lg p-2 text-gray-400 transition hover:bg-gray-800 hover:text-white">
-                        <X className="h-5 w-5" />
-                    </button>
+                    <p className="mt-0.5 text-xs text-text-muted">Manage scenarios using natural language</p>
                 </div>
 
-                {/* Messages */}
-                <div className="flex-1 space-y-4 overflow-y-auto p-5">
-                    {messages.map((item) => (
-                        <div key={item.id} className={`flex ${item.role === "user" ? "justify-end" : "justify-start"}`}>
-                            <div
-                                className={`max-w-[85%] rounded-xl px-4 py-3 text-sm leading-6 ${
-                                    item.role === "user" ? "bg-indigo-600 text-white" : "border border-gray-800 bg-gray-900 text-gray-300"
-                                }`}
-                            >
-                                {item.content}
+                <button type="button" onClick={onClose} className="rounded-md px-2 py-1 text-text-muted transition hover:bg-surface-hover hover:text-text-primary">
+                    ✕
+                </button>
+            </div>
+
+            <div className="flex-1 space-y-3 overflow-y-auto p-4">
+                {messages.map((message, index) => {
+                    const isUser = message.role === "user";
+
+                    return (
+                        <div key={index} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+                            <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${isUser ? "bg-primary text-white" : "bg-surface-hover text-text-primary"}`}>
+                                <p className="whitespace-pre-wrap">{message.content}</p>
                             </div>
                         </div>
-                    ))}
+                    );
+                })}
 
-                    {loading && (
-                        <div className="flex justify-start">
-                            <div className="rounded-xl border border-gray-800 bg-gray-900 px-4 py-3 text-sm text-gray-500">Thinking...</div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Input */}
-                <form onSubmit={handleSubmit} className="border-t border-gray-800 p-4">
-                    <div className="flex items-end gap-3">
-                        <textarea
-                            value={message}
-                            onChange={(event) => setMessage(event.target.value)}
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter" && !event.shiftKey) {
-                                    event.preventDefault();
-
-                                    event.currentTarget.form?.requestSubmit();
-                                }
-                            }}
-                            disabled={loading}
-                            rows={2}
-                            placeholder="Ask me to create or manage a scenario..."
-                            className="min-h-[48px] flex-1 resize-none rounded-lg border border-gray-800 bg-gray-900 px-4 py-3 text-sm text-gray-200 placeholder:text-gray-600 focus:border-indigo-500"
-                        />
-
-                        <button
-                            type="submit"
-                            disabled={loading || !message.trim()}
-                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white transition hover:bg-indigo-500 disabled:opacity-50"
-                        >
-                            <Send className="h-4 w-4" />
-                        </button>
+                {loading && (
+                    <div className="flex justify-start">
+                        <div className="rounded-lg bg-surface-hover px-3 py-2 text-sm text-text-muted">Thinking...</div>
                     </div>
-                </form>
+                )}
+            </div>
+
+            <div className="border-t border-border p-3">
+                <div className="flex items-end gap-2">
+                    <textarea
+                        value={input}
+                        onChange={(event) => setInput(event.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Ask me to create or update a scenario..."
+                        rows={2}
+                        disabled={loading}
+                        className="min-h-[44px] flex-1 resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-primary"
+                    />
+
+                    <button
+                        type="button"
+                        onClick={() => void handleSend()}
+                        disabled={!input.trim() || loading}
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Send
+                    </button>
+                </div>
             </div>
         </div>
     );
