@@ -1,5 +1,6 @@
 import express from "express";
 import { findMockResponse } from "./services/stub.service.js";
+import { errorHandler } from "../middleware/error-handler.js";
 
 const app = express();
 
@@ -31,5 +32,7 @@ app.use(async (req, res) => {
         return res.status(500).json({ success: false, message: "Stub simulation failed" });
     }
 });
+
+app.use(errorHandler);
 
 export default app;
