@@ -28,7 +28,6 @@ app.use(async (req, res) => {
 
         return res.status(result.statusCode).json(result.body);
     } catch (error) {
-        req.log.error(error);
         return res.status(500).json({ success: false, message: "Stub simulation failed" });
     }
 });

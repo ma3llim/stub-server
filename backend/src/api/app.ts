@@ -17,10 +17,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
 app.get("/health", (_req, res) => {
-    res.status(200).json({
-        status: "UP",
-        service: "api",
-    });
+    res.status(200).json({ status: "UP", service: "api" });
 });
 
 app.use("/api/v1/auth", authRoutes);
