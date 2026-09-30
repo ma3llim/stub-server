@@ -1,0 +1,30 @@
+{
+    "name": "mock-api-platform",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "description": "Production-ready mock and stub API platform",
+    "scripts": {
+        "dev": "tsx watch src/api/server.ts",
+        "dev:stub": "tsx watch src/stub/server.ts",
+        "build": "tsc",
+        "start": "node dist/api/server.js",
+        "start:stub": "node dist/stub/server.js"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.6.1",
+        "express": "^5.1.0",
+        "mongoose": "^8.18.0",
+        "pino": "^9.9.0",
+        "pino-http": "^10.5.0",
+        "zod": "^4.1.5"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.3",
+        "@types/node": "^24.5.2",
+        "tsx": "^4.20.5",
+        "typescript": "^5.9.2"
+    }
+}
