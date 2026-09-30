@@ -24,7 +24,7 @@ export default function ScenarioForm({ mockApiId, scenario, onSuccess, onCancel 
         if (!scenario) {
             setName("");
             setStatusCode(200);
-            setHeaders(`{"Content-Type": "application/json"}`);
+            setHeaders(JSON.stringify({ "Content-Type": "application/json" }, null, 2));
             setResponseBody("{}");
             setDelayMs(0);
             return;

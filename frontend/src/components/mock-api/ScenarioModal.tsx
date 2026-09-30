@@ -23,7 +23,7 @@ export default function ScenarioModal({ mockApiId, scenario, onSuccess, onClose 
         if (!scenario) {
             setName("");
             setStatusCode(200);
-            setHeaders("{}");
+            setHeaders(JSON.stringify({ "Content-Type": "application/json" }, null, 2));
             setResponseBody("{}");
             setDelayMs(0);
             return;
