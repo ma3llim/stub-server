@@ -85,12 +85,6 @@ export default function Dashboard() {
                 <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
                     <div className="flex items-center gap-8">
                         <h1 className="text-lg font-bold text-white">Mock API</h1>
-
-                        <nav className="hidden items-center gap-5 text-sm md:flex">
-                            <span className="font-medium text-white">APIs</span>
-
-                            <span className="text-gray-500">Settings</span>
-                        </nav>
                     </div>
 
                     <div className="flex items-center gap-4">
