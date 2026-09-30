@@ -133,9 +133,7 @@ export default function ScenarioModal({ mockApiId, scenario, onSuccess, onClose 
 
                     <div>
                         <label className="mb-2 block text-sm font-medium text-text-secondary">Status Code</label>
-
                         <input
-                            type="number"
                             value={statusCode}
                             onChange={(event) => setStatusCode(Number(event.target.value))}
                             min={100}
@@ -172,7 +170,6 @@ export default function ScenarioModal({ mockApiId, scenario, onSuccess, onClose 
 
                         <div className="relative">
                             <input
-                                type="number"
                                 value={delayMs}
                                 onChange={(event) => setDelayMs(Number(event.target.value))}
                                 min={0}
