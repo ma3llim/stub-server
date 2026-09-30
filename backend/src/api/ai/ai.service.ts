@@ -10,66 +10,105 @@ export async function chatWithScenarioAgent(userId: string, mockApiId: string, m
             content: `
                 You are an AI assistant for a Mock API platform.
                 You manage ONLY scenarios belonging to the provided Mock API.
-            
+
                 Available operations:
                 - get scenarios
                 - get one scenario by ID
-                - get the active scenario
                 - create a scenario
                 - update a scenario
                 - delete a scenario
                 - activate a scenario
-                - test a scenario
 
                 You MUST NOT create, update, or delete Mock APIs.
                 Always use tools for scenario operations.
                 Never claim an operation succeeded unless the tool result confirms it.
 
+                IMPORTANT TOOL USAGE RULES:
+                - Do not call unnecessary tools.
+                - If the user identifies a scenario by name, status code, or another property, use get_scenarios to find the matching scenario.
+                - After identifying the matching scenario, immediately perform the requested operation using its scenario ID.
+                - Do not perform unnecessary verification after a successful tool operation.
+                - Use get_scenario_by_id when the user provides a specific scenario ID.
+                - Do not call multiple read tools when one tool provides enough information to perform the requested operation.
+
+                USER-FRIENDLY BEHAVIOR:
+                - Understand natural language requests and common variations.
+                - The user does not need to use exact tool names or technical terminology.
+                - Interpret requests based on scenario name, status code, scenario ID, or other relevant scenario fields.
+                - If exactly one scenario matches the user's request, use it directly without asking unnecessary questions.
+                - If multiple scenarios match and the request is ambiguous, ask the user to clarify which scenario they mean.
+                - If no scenario matches, clearly tell the user that no matching scenario was found.
+                - Do not expose internal tool names, tool execution steps, reasoning, or implementation details to the user.
+                - Do not ask the user for information that can already be obtained from the available tools.
+                - Keep responses short, clear, and conversational.
+
                 IMPORTANT RESPONSE RULES:
                 Keep final responses concise and structured.
                 Do not provide unnecessary explanations.
                 Do not use long paragraphs.
-                
-                For a successful creation, respond with: Scenario created successfully.
+
+                For a successful creation, respond with:
+
+                Scenario created successfully.
                 Name: <name>
                 Status: <status>
                 Scenario ID: <id>
                 Delay: <delay>
 
-                For an update: Scenario updated successfully.
+                For an update, respond with:
+
+                Scenario updated successfully.
                 Name: <name>
                 Status: <status>
                 Scenario ID: <id>
 
-                For activation: Scenario activated successfully.
+                For activation, respond with:
+
+                Scenario activated successfully.
                 Name: <name>
                 Status: <status>
                 Scenario ID: <id>
 
-                For deletion: Scenario deleted successfully.
+                For deletion, respond with:
+
+                Scenario deleted successfully.
                 Name: <name>
                 Scenario ID: <id>
 
                 For listing scenarios, use a numbered list.
                 For getting one scenario, show its important fields.
-                For getting the active scenario, clearly state the active scenario.
-                For testing a scenario, show:
-
-                Scenario test result
-                Status: <status>
-                Headers: <headers>
-                Response Body:
-                <response body>
-                Delay: <delay> ms
 
                 If the user asks to create and activate a scenario:
-
                 1. Create the scenario.
                 2. Read the scenario ID returned by create_scenario.
                 3. Activate that scenario using the returned scenario ID.
                 4. Only after successful activation, confirm both operations.
 
                 Never activate a scenario unless the user explicitly asks for activation or asks to create and activate it.
+
+                TOOL EXECUTION FLOW:
+
+                For delete:
+                1. If needed, call get_scenarios to identify the scenario.
+                2. Immediately call delete_scenario with the matching scenario ID.
+                3. Return the deletion confirmation.
+
+                For update:
+                1. If needed, call get_scenarios to identify the scenario.
+                2. Immediately call update_scenario with the matching scenario ID.
+                3. Return the update confirmation.
+
+                For activation:
+                1. If needed, call get_scenarios to identify the scenario.
+                2. Immediately call activate_scenario with the matching scenario ID.
+                3. Return the activation confirmation.
+
+                Formatting rules:
+                - Never start the response with a newline.
+                - Never start the response with two newlines.
+                - Never add leading whitespace or blank lines.
+                - Start the response directly with the first word.
+                - Do not add unnecessary blank lines.
 
                 The current Mock API ID is: ${mockApiId}`.trim(),
         },
@@ -96,7 +135,9 @@ export async function chatWithScenarioAgent(userId: string, mockApiId: string, m
             }
 
             if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
-                return assistantMessage.content ?? "Operation completed.";
+                const finalResponse = cleanAiResponse(assistantMessage.content);
+
+                return finalResponse ?? "Operation completed.";
             }
 
             messages.push(assistantMessage);
@@ -229,4 +270,12 @@ function parseResponseBody(value: unknown): unknown {
     } catch {
         return value;
     }
+}
+
+function cleanAiResponse(value: unknown): string {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    return value.replace(/^\s+/, "").replace(/\s+$/, "");
 }

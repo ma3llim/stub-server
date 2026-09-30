@@ -40,23 +40,6 @@ export const scenarioTools = [
     {
         type: "function" as const,
         function: {
-            name: "get_active_scenario",
-            description: "Get the currently active scenario for the mock API.",
-            parameters: {
-                type: "object",
-                properties: {
-                    mockApiId: {
-                        type: "string",
-                    },
-                },
-                required: ["mockApiId"],
-            },
-        },
-    },
-
-    {
-        type: "function" as const,
-        function: {
             name: "create_scenario",
             description: "Create a new response scenario for an existing mock API.",
             parameters: {
@@ -154,27 +137,6 @@ export const scenarioTools = [
         function: {
             name: "activate_scenario",
             description: "Activate one scenario for the mock API. Only one scenario can be active at a time.",
-            parameters: {
-                type: "object",
-                properties: {
-                    mockApiId: {
-                        type: "string",
-                    },
-                    scenarioId: {
-                        type: "string",
-                    },
-                },
-                required: ["mockApiId", "scenarioId"],
-            },
-        },
-    },
-
-    {
-        type: "function" as const,
-        function: {
-            name: "test_scenario",
-            description:
-                "Test a scenario by returning the exact HTTP response that the mock API would produce, including status code, headers, response body, and configured delay. This does not modify the scenario.",
             parameters: {
                 type: "object",
                 properties: {
