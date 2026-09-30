@@ -1,17 +1,10 @@
 import express from "express";
 import { findMockResponse } from "./services/stub.service.js";
-import pino from "pino";
-import { pinoHttp } from "pino-http";
 
 const app = express();
 
-const logger = pino({
-    level: process.env.LOG_LEVEL || "info",
-});
-
 app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
-app.use(pinoHttp({ logger }));
 
 app.get("/health", (_req, res) => {
     res.status(200).json({ status: "UP", service: "stub" });
