@@ -41,13 +41,22 @@ export async function updateMockApi(userId: string, id: string, data: UpdateMock
         return null;
     }
 
+    const updateData = {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.method !== undefined && { method: data.method }),
+        ...(data.path !== undefined && { path: data.path }),
+        ...(data.description !== undefined && {
+            description: data.description,
+        }),
+    };
+
     return MockApi.findOneAndUpdate(
         {
             _id: toObjectId(id),
             userId: toObjectId(userId),
         },
         {
-            $set: data,
+            $set: updateData,
         },
         {
             new: true,
