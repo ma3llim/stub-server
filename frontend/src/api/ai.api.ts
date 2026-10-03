@@ -1,8 +1,13 @@
 import api from "./axios";
+import type { MockResponseData } from "./mock-api.api";
 
 export interface ChatRequest {
     mockApiId: string;
     message: string;
+    mock: {
+        successResponse?: MockResponseData;
+        errorResponse?: MockResponseData;
+    };
 }
 
 export interface ChatResponse {

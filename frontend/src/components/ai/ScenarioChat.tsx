@@ -2,6 +2,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { sendAiMessage } from "../../api/ai.api";
+import type { MockResponseData } from "../../api/mock-api.api";
 
 interface Message {
     role: "user" | "assistant";
@@ -10,11 +11,13 @@ interface Message {
 
 interface ScenarioChatProps {
     mockApiId: string;
+    successResponse?: MockResponseData;
+    errorResponse?: MockResponseData;
     onClose: () => void;
     onScenarioChanged?: () => void;
 }
 
-export default function ScenarioChat({ mockApiId, onClose, onScenarioChanged }: ScenarioChatProps) {
+export default function ScenarioChat({ mockApiId, successResponse, errorResponse, onClose, onScenarioChanged }: ScenarioChatProps) {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: "assistant",
@@ -47,6 +50,10 @@ export default function ScenarioChat({ mockApiId, onClose, onScenarioChanged }: 
             const response = await sendAiMessage({
                 mockApiId,
                 message,
+                mock: {
+                    successResponse,
+                    errorResponse,
+                },
             });
 
             setMessages((current) => [
