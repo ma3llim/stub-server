@@ -10,6 +10,8 @@ export interface MockScenario {
     delayMs: number;
 }
 
+export type MockResponseData = Record<string, unknown>;
+
 export interface MockApi {
     _id: string;
     userId: string;
@@ -19,6 +21,8 @@ export interface MockApi {
     description?: string;
     activeScenarioId?: string;
     scenarios: MockScenario[];
+    successResponse?: MockResponseData;
+    errorResponse?: MockResponseData;
     createdAt: string;
     updatedAt: string;
 }

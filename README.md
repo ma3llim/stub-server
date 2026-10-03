@@ -70,6 +70,35 @@ The platform also includes an AI Scenario Assistant that allows users to manage 
 - Activate a specific scenario
 - Create, edit, and delete scenarios
 
+### Success and Error Responses
+
+Each Mock API can also store one success JSON object and one error JSON object independently of its scenarios. These values are stored directly in the `successResponse` and `errorResponse` fields.
+
+The authenticated management API supports CRUD operations at:
+
+```text
+POST   /mock-apis/:id/responses/success
+GET    /mock-apis/:id/responses/success
+PUT    /mock-apis/:id/responses/success
+DELETE /mock-apis/:id/responses/success
+
+POST   /mock-apis/:id/responses/error
+GET    /mock-apis/:id/responses/error
+PUT    /mock-apis/:id/responses/error
+DELETE /mock-apis/:id/responses/error
+```
+
+Create request example (the request body is the JSON response itself):
+
+```json
+{
+  "data": [],
+  "message": "Success"
+}
+```
+
+Creating a response that already exists returns `409 Conflict`; updating or deleting a response that does not exist returns `404 Not Found`.
+
 ### Scenario Organization
 
 - Drag-and-drop scenario ordering

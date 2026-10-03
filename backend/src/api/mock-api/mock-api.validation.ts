@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const httpMethodSchema = z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]);
 
+const responseDataSchema = z.record(z.string(), z.unknown());
+
 const scenarioSchema = z.object({
     name: z.string().trim().min(1).max(100),
 
@@ -24,6 +26,10 @@ export const createMockApiSchema = z.object({
     description: z.string().trim().max(500).optional(),
 
     scenarios: z.array(scenarioSchema).default([]),
+
+    successResponse: responseDataSchema.optional(),
+
+    errorResponse: responseDataSchema.optional(),
 });
 
 export const updateMockApiSchema = createMockApiSchema.partial();

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import type { HttpMethod, MockApi } from "../../api/mock-api.api";
-import { ChevronDown, ChevronUp, Bot, Copy, Check } from "lucide-react";
+import type { HttpMethod, MockApi, MockResponseData } from "../../api/mock-api.api";
+import { ChevronDown, ChevronUp, Bot, Copy, Check, Braces } from "lucide-react";
 import ScenarioList from "./ScenarioList";
 import ScenarioChat from "../ai/ScenarioChat";
+import MockResponseModal from "./MockResponseModal";
+import type { MockResponseType } from "../../api/response.api";
 
 interface ApiEndpointProps {
     mockApi: MockApi;
@@ -30,8 +32,11 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
     const [expanded, setExpanded] = useState(false);
     const [scenariosExpanded, setScenariosExpanded] = useState(true);
     const [chatOpen, setChatOpen] = useState(false);
+    const [mockResponseType, setMockResponseType] = useState<MockResponseType | null>(null);
     const [scenarioRefreshTrigger, setScenarioRefreshTrigger] = useState(0);
     const [activeScenarioId, setActiveScenarioId] = useState(mockApi.activeScenarioId);
+    const [successResponse, setSuccessResponse] = useState(mockApi.successResponse);
+    const [errorResponse, setErrorResponse] = useState(mockApi.errorResponse);
     const [copied, setCopied] = useState(false);
 
     const customEndpoint = `${import.meta.env.VITE_MOCK_SERVER_URL}${mockApi.path}`;
@@ -51,6 +56,15 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
 
         setScenarioRefreshTrigger((current) => current + 1);
     }
+
+    function handleResponseChanged(type: MockResponseType, response?: MockResponseData) {
+        if (type === "success") {
+            setSuccessResponse(response);
+        } else {
+            setErrorResponse(response);
+        }
+    }
+
     return (
         <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900">
             <button type="button" onClick={() => setExpanded((value) => !value)} className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-gray-800">
@@ -115,6 +129,22 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                         <div className="flex justify-end gap-3 border-t border-gray-800 pt-5">
                             <button
                                 type="button"
+                                onClick={() => setMockResponseType("success")}
+                                className="flex items-center gap-2 rounded-lg border border-green-900 px-4 py-2 text-sm font-medium text-green-400 transition hover:bg-green-950"
+                            >
+                                <Braces className="h-4 w-4" />
+                                Success Mock
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setMockResponseType("error")}
+                                className="flex items-center gap-2 rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950"
+                            >
+                                <Braces className="h-4 w-4" />
+                                Error Mock
+                            </button>
+                            <button
+                                type="button"
                                 onClick={() => onEdit(mockApi)}
                                 className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-800"
                             >
@@ -137,6 +167,14 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                 </div>
             )}
             {chatOpen && <ScenarioChat mockApiId={mockApi._id} onClose={() => setChatOpen(false)} onScenarioChanged={handleScenarioChanged} />}
+            {mockResponseType && (
+                <MockResponseModal
+                    mockApi={{ ...mockApi, successResponse, errorResponse }}
+                    type={mockResponseType}
+                    onClose={() => setMockResponseType(null)}
+                    onResponseChange={handleResponseChanged}
+                />
+            )}
         </div>
     );
 }

@@ -48,6 +48,8 @@ export async function updateMockApi(userId: string, id: string, data: UpdateMock
         ...(data.description !== undefined && {
             description: data.description,
         }),
+        ...(data.successResponse !== undefined && { successResponse: data.successResponse }),
+        ...(data.errorResponse !== undefined && { errorResponse: data.errorResponse }),
     };
 
     return MockApi.findOneAndUpdate(

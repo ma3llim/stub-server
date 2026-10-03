@@ -1,5 +1,8 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type MockResponseType = "success" | "error";
+
+export type MockResponseData = Record<string, unknown>;
 
 export interface MockScenario {
     _id: mongoose.Types.ObjectId;
@@ -18,6 +21,8 @@ export interface MockApiDocument extends Document {
     description?: string;
     activeScenarioId?: mongoose.Types.ObjectId;
     scenarios: MockScenario[];
+    successResponse?: MockResponseData;
+    errorResponse?: MockResponseData;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -104,6 +109,14 @@ const mockApiSchema = new Schema<MockApiDocument>(
         scenarios: {
             type: [scenarioSchema],
             default: [],
+        },
+
+        successResponse: {
+            type: Schema.Types.Mixed,
+        },
+
+        errorResponse: {
+            type: Schema.Types.Mixed,
         },
     },
     {
