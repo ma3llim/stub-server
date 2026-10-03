@@ -3,6 +3,7 @@ import axios from "axios";
 import { Braces, X } from "lucide-react";
 import { createMockResponse, updateMockResponse, type MockResponseType } from "../../api/response.api";
 import type { MockApi, MockResponseData } from "../../api/mock-api.api";
+import JsonCodeEditor from "./JsonCodeEditor";
 
 interface MockResponseModalProps {
     mockApi: MockApi;
@@ -113,27 +114,28 @@ export default function MockResponseModal({ mockApi, type, onClose, onResponseCh
                             <p className="mt-1 text-sm text-gray-400">JSON response body for {mockApi.method} {mockApi.path}</p>
                         </div>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={loading}
-                        className="rounded-md p-1 text-gray-500 transition hover:bg-gray-800 hover:text-gray-300 disabled:opacity-50"
-                        aria-label="Close modal"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="rounded-md p-1 text-gray-500 transition hover:bg-gray-800 hover:text-gray-300 disabled:opacity-50"
+                            aria-label="Close modal"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
                 </div>
 
                 <section className="flex min-h-0 flex-1 flex-col gap-4 p-5">
                     <div className="flex min-h-0 flex-1">
-                        <textarea
+                        <JsonCodeEditor
                             id="response-body"
                             value={editor.body}
-                            onChange={(event) => updateEditor({ body: event.target.value })}
+                            onChange={(body) => updateEditor({ body })}
                             readOnly={!isEditing}
-                            spellCheck={false}
-                            placeholder={'{\n  "message": "Example response"\n}'}
-                            className="h-full min-h-0 w-full resize-none rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 font-mono text-sm text-white outline-none placeholder:text-gray-600 focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20 read-only:cursor-default read-only:focus:border-gray-700 read-only:focus:ring-0"
+                            className="h-full min-h-0 w-full rounded-lg border border-gray-700 bg-gray-950 focus-within:border-gray-500 focus-within:ring-2 focus-within:ring-gray-500/20"
+                            onFormatError={() => setError("Enter valid JSON before formatting.")}
                         />
                     </div>
 

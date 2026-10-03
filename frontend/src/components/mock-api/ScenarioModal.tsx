@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createScenario, updateScenario, type CreateScenarioRequest, type MockScenario } from "../../api/scenario.api";
 import { X } from "lucide-react";
+import JsonCodeEditor from "./JsonCodeEditor";
 
 interface ScenarioModalProps {
     mockApiId: string;
@@ -146,22 +147,22 @@ export default function ScenarioModal({ mockApiId, scenario, onSuccess, onClose 
                     <div>
                         <label className="mb-2 block text-sm font-medium text-text-secondary">Response Headers</label>
 
-                        <textarea
+                        <JsonCodeEditor
                             value={headers}
-                            onChange={(event) => setHeaders(event.target.value)}
-                            rows={5}
-                            className="w-full resize-y rounded-lg border border-border bg-background px-4 py-3 font-mono text-sm text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            onChange={setHeaders}
+                            className="h-36 w-full rounded-lg border border-border bg-background text-text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
+                            onFormatError={() => setError("Response headers must contain a valid JSON object.")}
                         />
                     </div>
 
                     <div>
                         <label className="mb-2 block text-sm font-medium text-text-secondary">Response Body</label>
 
-                        <textarea
+                        <JsonCodeEditor
                             value={responseBody}
-                            onChange={(event) => setResponseBody(event.target.value)}
-                            rows={10}
-                            className="w-full resize-y rounded-lg border border-border bg-background px-4 py-3 font-mono text-sm text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            onChange={setResponseBody}
+                            className="h-64 w-full rounded-lg border border-border bg-background text-text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
+                            onFormatError={() => setError("Response body must contain valid JSON.")}
                         />
                     </div>
 

@@ -4,6 +4,7 @@ import { activateScenario, getScenarios, type MockScenario } from "../../api/sce
 import ScenarioModal from "./ScenarioModal";
 import DeleteScenarioDialog from "./DeleteScenarioDialog";
 import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import JsonCodeEditor from "./JsonCodeEditor";
 
 interface ScenarioListProps {
     mockApiId: string;
@@ -265,17 +266,29 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
                                                                 <div className="mb-4">
                                                                     <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Response Headers</p>
 
-                                                                    <pre className="overflow-x-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs leading-6 text-text-secondary">
-                                                                        {scenario.headers && Object.keys(scenario.headers).length > 0 ? JSON.stringify(scenario.headers, null, 2) : "-"}
-                                                                    </pre>
+                                                                    {scenario.headers && Object.keys(scenario.headers).length > 0 ? (
+                                                                        <JsonCodeEditor
+                                                                            value={JSON.stringify(scenario.headers, null, 2)}
+                                                                            onChange={() => {}}
+                                                                            readOnly
+                                                                            showFormatButton={false}
+                                                                            className="h-32 w-full rounded-lg border border-border bg-surface text-xs text-text-secondary"
+                                                                        />
+                                                                    ) : (
+                                                                        <p className="rounded-lg border border-border bg-surface p-4 text-sm text-text-muted">-</p>
+                                                                    )}
                                                                 </div>
 
                                                                 <div>
                                                                     <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Response Body</p>
 
-                                                                    <pre className="max-h-80 overflow-auto rounded-lg border border-border bg-surface p-4 font-mono text-xs leading-6 text-text-secondary">
-                                                                        {JSON.stringify(scenario.responseBody, null, 2)}
-                                                                    </pre>
+                                                                    <JsonCodeEditor
+                                                                        value={JSON.stringify(scenario.responseBody, null, 2)}
+                                                                        onChange={() => {}}
+                                                                        readOnly
+                                                                        showFormatButton={false}
+                                                                        className="h-48 max-h-80 w-full rounded-lg border border-border bg-surface text-xs text-text-secondary"
+                                                                    />
                                                                 </div>
 
                                                                 <div className="mt-4 flex items-center gap-2 text-xs text-text-muted">

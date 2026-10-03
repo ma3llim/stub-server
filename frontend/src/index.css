@@ -124,54 +124,42 @@ a {
     background: #3a4250;
 }
 
-#response-body {
-    scrollbar-width: auto;
-}
-
-#response-body::-webkit-scrollbar {
-    width: 16px;
-    height: 16px;
-}
-
-#response-body::-webkit-scrollbar-track {
-    background: #0b0d12;
-}
-
-#response-body::-webkit-scrollbar-thumb {
-    background: #3a4250;
-}
-
-.json-editor-highlight,
-.json-editor-input {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+.json-code-editor .cm-editor {
+    height: 100%;
+    background: #030712;
     font-size: 0.875rem;
-    font-weight: 400;
+}
+
+.json-code-editor .cm-scroller {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     line-height: 1.5rem;
-    letter-spacing: 0;
-    tab-size: 2;
-    white-space: pre;
-}
-
-.json-editor-highlight {
-    color: #e5e7eb;
-}
-
-.json-editor-input {
-    -webkit-text-fill-color: transparent;
     scrollbar-color: #3a4250 #0b0d12;
     scrollbar-width: auto;
 }
 
-.json-editor-input::-webkit-scrollbar {
+.json-code-editor .cm-content {
+    padding: 0.625rem 0.75rem;
+    caret-color: #ffffff;
+}
+
+.json-code-editor .cm-gutters {
+    display: none;
+}
+
+.json-code-editor .cm-editor.cm-focused {
+    outline: none;
+}
+
+.json-code-editor .cm-scroller::-webkit-scrollbar {
     width: 16px;
     height: 16px;
 }
 
-.json-editor-input::-webkit-scrollbar-track {
+.json-code-editor .cm-scroller::-webkit-scrollbar-track {
     background: #0b0d12;
 }
 
-.json-editor-input::-webkit-scrollbar-thumb {
+.json-code-editor .cm-scroller::-webkit-scrollbar-thumb {
     background: #3a4250;
     border-radius: 999px;
 }
