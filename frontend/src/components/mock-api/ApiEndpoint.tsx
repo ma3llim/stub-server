@@ -81,6 +81,42 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                             <h3 className="text-base font-semibold text-white">{mockApi.name}</h3>
                             {mockApi.description && <p className="mt-2 text-sm leading-6 text-gray-400">{mockApi.description}</p>}
                         </div>
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setMockResponseType("success")}
+                                className="flex items-center gap-2 rounded-lg border border-green-900 px-4 py-2 text-sm font-medium text-green-400 transition hover:bg-green-950"
+                            >
+                                <Braces className="h-4 w-4" />
+                                Success Mock
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setMockResponseType("error")}
+                                className="flex items-center gap-2 rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950"
+                            >
+                                <Braces className="h-4 w-4" />
+                                Error Mock
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onEdit(mockApi)}
+                                className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-800"
+                            >
+                                Edit
+                            </button>
+                            <button type="button" onClick={() => onDelete(mockApi)} className="rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950">
+                                Delete
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setChatOpen(true)}
+                                className="flex items-center gap-2 rounded-lg border border-indigo-800 px-4 py-2 text-sm font-medium text-indigo-400 transition hover:bg-indigo-950"
+                            >
+                                <Bot className="h-4 w-4" />
+                                AI Assistant
+                            </button>
+                        </div>
                         <section>
                             <h4 className="mb-3 text-sm font-semibold text-white">Endpoint</h4>
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -125,44 +161,6 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                                 </div>
                             )}
                         </section>
-
-                        <div className="flex justify-end gap-3 border-t border-gray-800 pt-5">
-                            <button
-                                type="button"
-                                onClick={() => setMockResponseType("success")}
-                                className="flex items-center gap-2 rounded-lg border border-green-900 px-4 py-2 text-sm font-medium text-green-400 transition hover:bg-green-950"
-                            >
-                                <Braces className="h-4 w-4" />
-                                Success Mock
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setMockResponseType("error")}
-                                className="flex items-center gap-2 rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950"
-                            >
-                                <Braces className="h-4 w-4" />
-                                Error Mock
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => onEdit(mockApi)}
-                                className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-800"
-                            >
-                                Edit
-                            </button>
-
-                            <button type="button" onClick={() => onDelete(mockApi)} className="rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950">
-                                Delete
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setChatOpen(true)}
-                                className="flex items-center gap-2 rounded-lg border border-indigo-800 px-4 py-2 text-sm font-medium text-indigo-400 transition hover:bg-indigo-950"
-                            >
-                                <Bot className="h-4 w-4" />
-                                AI Assistant
-                            </button>
-                        </div>
                     </div>
                 </div>
             )}

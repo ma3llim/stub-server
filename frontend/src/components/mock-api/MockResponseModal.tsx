@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Braces, X } from "lucide-react";
-import { createMockResponse, deleteMockResponse, updateMockResponse, type MockResponseType } from "../../api/response.api";
+import { createMockResponse, updateMockResponse, type MockResponseType } from "../../api/response.api";
 import type { MockApi, MockResponseData } from "../../api/mock-api.api";
 
 interface MockResponseModalProps {
@@ -40,6 +40,7 @@ export default function MockResponseModal({ mockApi, type, onClose, onResponseCh
     const [editor, setEditor] = useState(() => createEditorState(response));
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(() => !response);
 
     useEffect(() => {
         function handleEscape(event: KeyboardEvent) {
@@ -86,23 +87,9 @@ export default function MockResponseModal({ mockApi, type, onClose, onResponseCh
 
             updateEditor({ configured: true });
             onResponseChange(type, savedResponse);
+            setIsEditing(false);
         } catch (error) {
             setError(getErrorMessage(error, `Unable to save the ${type} response.`));
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function removeResponse() {
-        setError("");
-        setLoading(true);
-
-        try {
-            await deleteMockResponse(mockApi._id, type);
-            updateEditor({ configured: false });
-            onResponseChange(type);
-        } catch (error) {
-            setError(getErrorMessage(error, `Unable to delete the ${type} response.`));
         } finally {
             setLoading(false);
         }
@@ -143,9 +130,10 @@ export default function MockResponseModal({ mockApi, type, onClose, onResponseCh
                             id="response-body"
                             value={editor.body}
                             onChange={(event) => updateEditor({ body: event.target.value })}
+                            readOnly={!isEditing}
                             spellCheck={false}
                             placeholder={'{\n  "message": "Example response"\n}'}
-                            className="h-full min-h-0 w-full resize-none rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 font-mono text-sm text-white outline-none placeholder:text-gray-600 focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20"
+                            className="h-full min-h-0 w-full resize-none rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 font-mono text-sm text-white outline-none placeholder:text-gray-600 focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20 read-only:cursor-default read-only:focus:border-gray-700 read-only:focus:ring-0"
                         />
                     </div>
 
@@ -156,24 +144,24 @@ export default function MockResponseModal({ mockApi, type, onClose, onResponseCh
                     )}
 
                     <div className="flex justify-end gap-2">
-                        {editor.configured && (
+                        {editor.configured && !isEditing ? (
                             <button
                                 type="button"
-                                onClick={() => void removeResponse()}
-                                disabled={loading}
-                                className="rounded-lg border border-red-900 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-950 disabled:cursor-not-allowed disabled:opacity-50"
+                                onClick={() => setIsEditing(true)}
+                                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
                             >
-                                Delete
+                                Edit {type} response
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => void saveResponse()}
+                                disabled={loading}
+                                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {loading ? "Saving..." : editor.configured ? "Save changes" : `Save ${type} response`}
                             </button>
                         )}
-                        <button
-                            type="button"
-                            onClick={() => void saveResponse()}
-                            disabled={loading}
-                            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {loading ? "Saving..." : `Save ${type} response`}
-                        </button>
                     </div>
                 </section>
             </div>

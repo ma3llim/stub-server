@@ -24,7 +24,3 @@ export async function updateMockResponse(mockApiId: string, type: MockResponseTy
 
     return response.data.data;
 }
-
-export async function deleteMockResponse(mockApiId: string, type: MockResponseType): Promise<void> {
-    await api.delete(getResponseUrl(mockApiId, type));
-}

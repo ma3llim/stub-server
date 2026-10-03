@@ -98,30 +98,3 @@ export async function updateResponse(
 
     return mockApi[field]!;
 }
-
-export async function deleteResponse(userId: string, mockApiId: string, type: MockResponseType): Promise<boolean> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
-        return false;
-    }
-
-    const mockApi = await MockApi.findOne({
-        _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
-    });
-
-    if (!mockApi) {
-        return false;
-    }
-
-    const field = getResponseField(type);
-
-    if (!mockApi[field]) {
-        return false;
-    }
-
-    mockApi.set(field, undefined);
-    mockApi.markModified(field);
-    await mockApi.save();
-
-    return true;
-}

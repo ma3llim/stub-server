@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { createResponseSchema, responseTypeSchema, updateResponseSchema } from "./response.validation.js";
-import { createResponse, deleteResponse, getResponse, updateResponse } from "./response.service.js";
+import { createResponse, getResponse, updateResponse } from "./response.service.js";
 
 interface ResponseParams {
     id: string;
@@ -88,24 +88,5 @@ export async function update(req: Request<ResponseParams>, res: Response) {
         success: true,
         message: `${type.data} response updated successfully`,
         data: response,
-    });
-}
-
-export async function remove(req: Request<ResponseParams>, res: Response) {
-    const type = parseResponseType(req.params.responseType);
-
-    if (!type.success) {
-        return res.status(404).json({ success: false, message: "Response type not found" });
-    }
-
-    const deleted = await deleteResponse(req.user!.userId, req.params.id, type.data);
-
-    if (!deleted) {
-        return res.status(404).json({ success: false, message: `${type.data} response not found` });
-    }
-
-    return res.status(200).json({
-        success: true,
-        message: `${type.data} response deleted successfully`,
     });
 }

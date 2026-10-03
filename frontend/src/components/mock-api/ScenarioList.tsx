@@ -38,7 +38,7 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
     const [scenarios, setScenarios] = useState<MockScenario[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [sortOption, setSortOption] = useState<SortOption>("created");
+    const [sortOption, setSortOption] = useState<SortOption>("status");
     const [expandedScenarioId, setExpandedScenarioId] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [editingScenario, setEditingScenario] = useState<MockScenario | null>(null);
