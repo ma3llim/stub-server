@@ -14,7 +14,7 @@ export default function Register() {
                         <p className="mt-2 text-sm text-text-secondary">Get started with the Mock API Platform</p>
                     </div>
 
-                    <RegisterForm onSuccess={() => navigate("/dashboard")} />
+                    <RegisterForm onSuccess={() => navigate("/", { replace: true })} />
 
                     <p className="mt-6 text-center text-sm text-text-secondary">
                         Already have an account?{" "}

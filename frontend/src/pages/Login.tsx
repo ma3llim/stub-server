@@ -14,7 +14,7 @@ export default function Login() {
                         <p className="mt-2 text-sm text-text-secondary">Sign in to your account</p>
                     </div>
 
-                    <LoginForm onSuccess={() => navigate("/dashboard")} />
+                    <LoginForm onSuccess={() => navigate("/", { replace: true })} />
 
                     <p className="mt-6 text-center text-sm text-text-secondary">
                         Don't have an account?{" "}

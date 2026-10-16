@@ -5,6 +5,7 @@ import authRoutes from "./auth/auth.routes.js";
 import mockApiRoutes from "./mock-api/mock-api.routes.js";
 import { errorHandler } from "../middleware/error-handler.js";
 import aiRoutes from "./ai/ai.routes.js";
+import mappingRoutes from "./mappings/mappings.routes.js";
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/mock-apis", mockApiRoutes);
 app.use("/api/v1/ai", aiRoutes);
+app.use("/api/v1/mappings", mappingRoutes);
 
 app.use(errorHandler);
 
