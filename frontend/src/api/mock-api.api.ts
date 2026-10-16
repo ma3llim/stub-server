@@ -72,6 +72,12 @@ export async function updateMockApi(id: string, data: UpdateMockApiRequest): Pro
     return response.data.data;
 }
 
+export async function deleteAllMockApis(): Promise<number> {
+    const response = await api.delete<{ success: boolean; data: { deletedCount: number } }>("/mock-apis", { params: { confirm: "all" } });
+
+    return response.data.data.deletedCount;
+}
+
 export async function deleteMockApi(id: string): Promise<void> {
     await api.delete(`/mock-apis/${id}`);
 }

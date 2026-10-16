@@ -1,11 +1,26 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CheckCircle2, FileJson, Loader2 } from "lucide-react";
 
 import { importApis, previewApiImport, type ConflictStrategy, type ExportFile, type ImportItem, type ImportPreview, type ImportResult } from "../../api/transfer.api";
 import { methodStyles } from "../mock-api/method-styles";
+import ApiScenarioPicker from "./ApiScenarioPicker";
 import FileDropZone from "./FileDropZone";
 import TransferModal, { TransferErrorAlert } from "./TransferModal";
-import { primaryButtonClass, readExportFile, secondaryButtonClass, toTransferError, type TransferErrorInfo } from "./transfer-utils";
+import {
+    apisInFile,
+    countSelection,
+    filterExportFile,
+    initialActive,
+    primaryButtonClass,
+    readExportFile,
+    secondaryButtonClass,
+    selectAllPicker,
+    toTransferError,
+    type PickerActive,
+    type PickerApi,
+    type PickerSelection,
+    type TransferErrorInfo,
+} from "./transfer-utils";
 
 interface ImportApisModalProps {
     onImported: () => void;
@@ -14,7 +29,7 @@ interface ImportApisModalProps {
 
 type Step =
     | { name: "select" }
-    | { name: "preview"; fileName: string; file: ExportFile; preview: ImportPreview }
+    | { name: "preview"; fileName: string; file: ExportFile; preview: ImportPreview; pickerApis: PickerApi[] }
     | { name: "done"; result: ImportResult };
 
 const statusBadge: Record<string, { label: string; className: string }> = {
@@ -25,11 +40,31 @@ const statusBadge: Record<string, { label: string; className: string }> = {
     skipped: { label: "Skipped", className: "border-border-strong bg-surface-hover text-text-muted" },
 };
 
-function ItemList({ items, show }: { items: ImportItem[]; show: "status" | "result" }) {
+/*
+ * Picker keys are indexes into the file: API "i" is apisInFile(file)[i] and scenario "j"
+ * is its scenarios[j]. The server's preview items are returned in the same order.
+ */
+function toPickerApis(file: ExportFile, preview: ImportPreview): PickerApi[] {
+    return apisInFile(file).map((api, apiIndex) => ({
+        key: String(apiIndex),
+        method: api.method,
+        name: api.name,
+        path: api.path,
+        badge: statusBadge[preview.items[apiIndex]?.status ?? "new"],
+        scenarios: api.scenarios.map((scenario, index) => ({
+            key: String(index),
+            name: scenario.name,
+            statusCode: scenario.statusCode,
+            active: api.activeScenarioIndex === index,
+        })),
+    }));
+}
+
+function ResultList({ items }: { items: ImportItem[] }) {
     return (
-        <ul className="max-h-72 divide-y divide-border overflow-y-auto rounded-lg border border-border">
+        <ul className="max-h-72 divide-y divide-border overflow-y-auto overscroll-contain rounded-lg border border-border">
             {items.map((item) => {
-                const badge = statusBadge[(show === "result" ? item.result : item.status) ?? item.status];
+                const badge = statusBadge[item.result ?? item.status];
 
                 return (
                     <li key={`${item.method} ${item.path}`} className="flex items-center gap-3 px-3 py-2.5">
@@ -68,6 +103,8 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
     const [checking, setChecking] = useState(false);
     const [importing, setImporting] = useState(false);
     const [strategy, setStrategy] = useState<ConflictStrategy>("skip");
+    const [selection, setSelection] = useState<PickerSelection>(new Map());
+    const [active, setActive] = useState<PickerActive>(new Map());
     const [error, setError] = useState<TransferErrorInfo | null>(null);
 
     async function handleFile(file: File): Promise<void> {
@@ -81,10 +118,14 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
                 throw new Error("This file contains a single scenario. Open the API you want to add it to and use Import in its Scenarios section.");
             }
 
+            // The preview validates the whole file and flags APIs that already exist.
             const preview = await previewApiImport(parsed);
+            const pickerApis = toPickerApis(parsed, preview);
 
             setStrategy("skip");
-            setStep({ name: "preview", fileName: file.name, file: parsed, preview });
+            setSelection(selectAllPicker(pickerApis));
+            setActive(initialActive(pickerApis));
+            setStep({ name: "preview", fileName: file.name, file: parsed, preview, pickerApis });
         } catch (checkError) {
             setError(toTransferError(checkError, "Couldn't check the file."));
         } finally {
@@ -97,7 +138,7 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
         setError(null);
 
         try {
-            const result = await importApis(file, strategy);
+            const result = await importApis(filterExportFile(file, selection, active), strategy);
 
             setStep({ name: "done", result });
             onImported();
@@ -108,7 +149,17 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
         }
     }
 
-    const description = "Add APIs and their scenarios from an exported file.";
+    const selectedStats = useMemo(() => {
+        if (step.name !== "preview") {
+            return { new: 0, conflicts: 0 };
+        }
+
+        const statuses = [...selection.keys()].map((key) => step.preview.items[Number(key)]?.status);
+
+        return { new: statuses.filter((status) => status === "new").length, conflicts: statuses.filter((status) => status === "conflict").length };
+    }, [step, selection]);
+
+    const description = "Choose which APIs and scenarios to add from an exported file.";
 
     if (step.name === "done") {
         const { summary, items } = step.result;
@@ -139,17 +190,16 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
                             </p>
                         </div>
                     </div>
-                    <ItemList items={items} show="result" />
+                    <ResultList items={items} />
                 </div>
             </TransferModal>
         );
     }
 
     if (step.name === "preview") {
-        const { preview } = step;
-        const { new: newCount, conflicts } = preview.summary;
-        const total = preview.items.length;
-        const willWrite = newCount + (strategy === "replace" ? conflicts : 0);
+        const { preview, pickerApis } = step;
+        const counts = countSelection(selection);
+        const willWrite = selectedStats.new + (strategy === "replace" ? selectedStats.conflicts : 0);
 
         return (
             <TransferModal
@@ -159,6 +209,9 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
                 onClose={onClose}
                 footer={
                     <>
+                        <span className="mr-auto text-xs text-text-muted">
+                            {counts.apis} API{counts.apis === 1 ? "" : "s"} · {counts.scenarios} scenario{counts.scenarios === 1 ? "" : "s"} selected
+                        </span>
                         <button type="button" onClick={() => setStep({ name: "select" })} disabled={importing} className={secondaryButtonClass}>
                             Choose another file
                         </button>
@@ -176,16 +229,17 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
                             <span className="truncate">{step.fileName}</span>
                         </span>
                         <span>
-                            {total} API{total === 1 ? "" : "s"} · {newCount} new · {conflicts} already exist{conflicts === 1 ? "s" : ""}
+                            {pickerApis.length} API{pickerApis.length === 1 ? "" : "s"} in file · {preview.summary.new} new · {preview.summary.conflicts} already exist
+                            {preview.summary.conflicts === 1 ? "s" : ""}
                         </span>
                     </div>
 
-                    <ItemList items={preview.items} show="status" />
+                    <ApiScenarioPicker apis={pickerApis} selection={selection} onChange={setSelection} active={active} onActiveChange={setActive} />
 
-                    {conflicts > 0 && (
+                    {selectedStats.conflicts > 0 && (
                         <fieldset className="space-y-2">
                             <legend className="mb-2 text-sm font-medium text-text-primary">
-                                {conflicts} API{conflicts === 1 ? "" : "s"} with the same method and path already exist{conflicts === 1 ? "s" : ""}
+                                {selectedStats.conflicts} selected API{selectedStats.conflicts === 1 ? "" : "s"} already exist{selectedStats.conflicts === 1 ? "s" : ""}
                             </legend>
                             <StrategyOption
                                 value="skip"
@@ -199,12 +253,13 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
                                 current={strategy}
                                 onChange={setStrategy}
                                 title="Replace existing APIs"
-                                description="Overwrite name, description, mock responses and all scenarios with the file's version."
+                                description="Overwrite name, description, mock responses and all scenarios with the selected scenarios from the file."
                             />
                         </fieldset>
                     )}
 
-                    {willWrite === 0 && <p className="text-sm text-text-secondary">Every API in this file already exists. Choose "Replace existing APIs" to overwrite them.</p>}
+                    {counts.apis === 0 && <p className="text-sm text-text-secondary">Select at least one API to import.</p>}
+                    {counts.apis > 0 && willWrite === 0 && <p className="text-sm text-text-secondary">All selected APIs already exist. Choose "Replace existing APIs" to overwrite them.</p>}
 
                     {error && <TransferErrorAlert error={error} />}
                 </div>

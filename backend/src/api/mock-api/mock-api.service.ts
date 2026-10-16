@@ -67,6 +67,14 @@ export async function updateMockApi(userId: string, id: string, data: UpdateMock
     );
 }
 
+export async function deleteAllMockApis(userId: string): Promise<number> {
+    const result = await MockApi.deleteMany({
+        userId: toObjectId(userId),
+    });
+
+    return result.deletedCount;
+}
+
 export async function deleteMockApi(userId: string, id: string): Promise<boolean> {
     if (!mongoose.isValidObjectId(id)) {
         return false;

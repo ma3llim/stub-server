@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 
 import { createMockApiSchema, updateMockApiSchema } from "./mock-api.validation.js";
 
-import { createMockApi, deleteMockApi, getMockApiById, getMockApis, updateMockApi } from "./mock-api.service.js";
+import { createMockApi, deleteAllMockApis, deleteMockApi, getMockApiById, getMockApis, updateMockApi } from "./mock-api.service.js";
 
 interface MockApiParams {
     id: string;
@@ -78,6 +78,30 @@ export async function update(req: Request<MockApiParams>, res: Response, next: N
             success: true,
             message: "Mock API updated successfully",
             data: mockApi,
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+export async function removeAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+        // Guard against accidental calls: deleting everything must be asked for explicitly.
+        if (req.query.confirm !== "all") {
+            res.status(400).json({
+                success: false,
+                message: 'Add ?confirm=all to delete all of your APIs',
+            });
+
+            return;
+        }
+
+        const deletedCount = await deleteAllMockApis(req.user!.userId);
+
+        res.status(200).json({
+            success: true,
+            message: `${deletedCount} Mock API${deletedCount === 1 ? "" : "s"} deleted`,
+            data: { deletedCount },
         });
     } catch (error) {
         next(error);

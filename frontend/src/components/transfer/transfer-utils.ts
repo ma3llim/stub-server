@@ -1,6 +1,92 @@
 import { isAxiosError } from "axios";
 
-import { EXPORT_FORMAT, EXPORT_VERSION, type ExportFile, type ExportKind } from "../../api/transfer.api";
+import type { HttpMethod } from "../../api/mock-api.api";
+import { EXPORT_FORMAT, EXPORT_VERSION, type ExportedApi, type ExportFile, type ExportKind, type WorkspaceExportFile } from "../../api/transfer.api";
+
+export interface PickerScenario {
+    key: string;
+    name: string;
+    statusCode: number;
+    active: boolean;
+}
+
+export interface PickerApi {
+    key: string;
+    method: HttpMethod;
+    name: string;
+    path: string;
+    scenarios: PickerScenario[];
+    badge?: { label: string; className: string };
+}
+
+// Selected scenario keys per API key. An API is included only if it has an entry.
+export type PickerSelection = Map<string, Set<string>>;
+
+export function selectAllPicker(apis: PickerApi[]): PickerSelection {
+    return new Map(apis.map((api) => [api.key, new Set(api.scenarios.map((scenario) => scenario.key))]));
+}
+
+// The scenario the user chose as active, per API key.
+export type PickerActive = Map<string, string>;
+
+export function initialActive(apis: PickerApi[]): PickerActive {
+    return new Map(apis.flatMap((api) => api.scenarios.filter((scenario) => scenario.active).map((scenario) => [api.key, scenario.key] as const)));
+}
+
+/**
+ * The scenario that will actually be active: the chosen one if it's selected,
+ * otherwise the first selected scenario (what the importer does by default).
+ */
+export function effectiveActive(scenarioKeys: string[], selected: Set<string> | undefined, chosen: string | undefined): string | null {
+    if (!selected || selected.size === 0) {
+        return null;
+    }
+
+    if (chosen && selected.has(chosen)) {
+        return chosen;
+    }
+
+    return scenarioKeys.find((key) => selected.has(key)) ?? null;
+}
+
+export function countSelection(selection: PickerSelection): { apis: number; scenarios: number } {
+    return { apis: selection.size, scenarios: [...selection.values()].reduce((total, keys) => total + keys.size, 0) };
+}
+
+export function apisInFile(file: ExportFile): ExportedApi[] {
+    if (file.kind === "api") {
+        return [file.api];
+    }
+
+    return file.kind === "workspace" ? file.apis : [];
+}
+
+/**
+ * Builds a workspace file with only the selected APIs and scenarios, using the
+ * index-based keys from {@link apisInFile}. The active scenario index points at the
+ * user's chosen active scenario (see {@link effectiveActive}) within the kept scenarios.
+ */
+export function filterExportFile(file: ExportFile, selection: PickerSelection, active: PickerActive): WorkspaceExportFile {
+    const apis = apisInFile(file).flatMap((api, apiIndex) => {
+        const selected = selection.get(String(apiIndex));
+
+        if (!selected) {
+            return [];
+        }
+
+        const kept = api.scenarios.map((scenario, index) => ({ scenario, key: String(index) })).filter(({ key }) => selected.has(key));
+        const activeKey = effectiveActive(
+            kept.map(({ key }) => key),
+            selected,
+            active.get(String(apiIndex)),
+        );
+        const activeIndex = kept.findIndex(({ key }) => key === activeKey);
+
+        return [{ ...api, scenarios: kept.map(({ scenario }) => scenario), activeScenarioIndex: activeIndex >= 0 ? activeIndex : null }];
+    });
+
+    return { format: file.format, version: file.version, kind: "workspace", exportedAt: file.exportedAt, apis };
+}
 
 // Matches the management API's JSON body limit.
 const MAX_FILE_BYTES = 10 * 1024 * 1024;

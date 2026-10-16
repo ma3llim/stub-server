@@ -22,7 +22,7 @@ const cards: HomeCard[] = [
     {
         to: `${import.meta.env.VITE_API_BASE_URL}/mappings`,
         title: "Mappings",
-        description: "Open the mappings API: every API and scenario you have, as JSON.",
+        description: "Open the mappings API: every user's APIs and scenarios, as JSON.",
         icon: Braces,
         newTab: true,
     },

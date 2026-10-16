@@ -172,19 +172,21 @@ export async function exportWorkspace(userId: string) {
 export interface ExportSelection {
     id: string;
     scenarioIds: string[];
+    activeScenarioId?: string;
 }
 
 /**
  * Exports only the chosen APIs, each with only the chosen scenarios (kept in the
- * API's own order). If the active scenario is left out, the file has no active
- * scenario and the importer falls back to the first one.
+ * API's own order). The active scenario is `activeScenarioId` when given, else the
+ * API's current one; if that was left out, the file has no active scenario and the
+ * importer falls back to the first one.
  */
 export async function exportSelectedApis(userId: string, selection: ExportSelection[]) {
     const byId = new Map((await getMockApis(userId)).map((mockApi) => [mockApi.id as string, mockApi]));
     const apis: ExportedApi[] = [];
     const seen = new Set<string>();
 
-    for (const { id, scenarioIds } of selection) {
+    for (const { id, scenarioIds, activeScenarioId } of selection) {
         if (seen.has(id)) {
             continue;
         }
@@ -204,8 +206,12 @@ export async function exportSelectedApis(userId: string, selection: ExportSelect
             throw new TransferError(`Some selected scenarios of "${mockApi.name}" no longer exist. Refresh the list and try again.`, 404);
         }
 
+        if (activeScenarioId !== undefined && !wanted.has(activeScenarioId)) {
+            throw new TransferError(`The active scenario chosen for "${mockApi.name}" must be one of its selected scenarios.`);
+        }
+
         const exported = toExportedApi(mockApi);
-        const activeId = mockApi.activeScenarioId?.toString();
+        const activeId = activeScenarioId ?? mockApi.activeScenarioId?.toString();
         const activeIndex = scenarios.findIndex((scenario) => scenario._id.toString() === activeId);
 
         apis.push({

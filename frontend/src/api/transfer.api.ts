@@ -82,6 +82,8 @@ export async function exportWorkspace(): Promise<WorkspaceExportFile> {
 export interface ExportSelectionItem {
     id: string;
     scenarioIds: string[];
+    // Must be one of scenarioIds; written to the file as the active scenario.
+    activeScenarioId?: string;
 }
 
 export async function exportSelectedApis(apis: ExportSelectionItem[]): Promise<WorkspaceExportFile> {

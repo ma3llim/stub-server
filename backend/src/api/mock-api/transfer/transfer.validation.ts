@@ -66,6 +66,7 @@ export const exportSelectionRequestSchema = z.object({
             z.object({
                 id: z.string().min(1),
                 scenarioIds: z.array(z.string().min(1)).max(MAX_SCENARIOS_PER_API),
+                activeScenarioId: z.string().min(1).optional(),
             }),
         )
         .min(1, "Select at least one API to export")

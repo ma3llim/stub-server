@@ -7,7 +7,8 @@ import CreateMockApiModal from "../components/mock-api/CreateMockApiModal";
 import DeleteMockApiDialog from "../components/mock-api/DeleteMockApiDialog";
 import ImportApisModal from "../components/transfer/ImportApisModal";
 import ExportApisModal from "../components/transfer/ExportApisModal";
-import { Download, Plus, Upload } from "lucide-react";
+import DeleteAllApisDialog from "../components/mock-api/DeleteAllApisDialog";
+import { Download, Plus, Trash2, Upload } from "lucide-react";
 
 export default function Dashboard() {
     const [mockApis, setMockApis] = useState<MockApi[]>([]);
@@ -22,6 +23,7 @@ export default function Dashboard() {
 
     const [showImportModal, setShowImportModal] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
+    const [showDeleteAll, setShowDeleteAll] = useState(false);
     // Bumped after an import so replaced APIs remount and reload their scenarios.
     const [importVersion, setImportVersion] = useState(0);
 
@@ -77,6 +79,15 @@ export default function Dashboard() {
         void loadMockApis();
     }
 
+    function handleAllDeleted(): void {
+        setShowDeleteAll(false);
+        setMockApis([]);
+
+        void loadMockApis();
+    }
+
+    const scenarioCount = mockApis.reduce((total, mockApi) => total + mockApi.scenarios.length, 0);
+
     return (
         <>
             <main className="mx-auto w-full max-w-7xl px-6 py-8">
@@ -105,6 +116,16 @@ export default function Dashboard() {
                     >
                         <Download className="h-4 w-4" />
                         Export all
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowDeleteAll(true)}
+                        disabled={loading || mockApis.length === 0}
+                        title={mockApis.length === 0 ? "No APIs to delete" : "Delete all of your APIs and scenarios"}
+                        className="flex items-center gap-2 rounded-lg border border-danger/30 px-4 py-2.5 text-sm font-medium text-danger transition hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                        Delete all
                     </button>
                     <button
                         type="button"
@@ -153,6 +174,19 @@ export default function Dashboard() {
             {showImportModal && <ImportApisModal onImported={handleImported} onClose={() => setShowImportModal(false)} />}
 
             {showExportModal && <ExportApisModal onClose={() => setShowExportModal(false)} />}
+
+            {showDeleteAll && (
+                <DeleteAllApisDialog
+                    apiCount={mockApis.length}
+                    scenarioCount={scenarioCount}
+                    onDeleted={handleAllDeleted}
+                    onExportFirst={() => {
+                        setShowDeleteAll(false);
+                        setShowExportModal(true);
+                    }}
+                    onClose={() => setShowDeleteAll(false)}
+                />
+            )}
 
             {deletingApi && <DeleteMockApiDialog mockApi={deletingApi} onSuccess={handleDeleteSuccess} onCancel={() => setDeletingApi(null)} />}
         </>
