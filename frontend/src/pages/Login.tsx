@@ -1,13 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import LoginForm from "../components/auth/LoginForm";
-import ThemeToggle from "../theme/ThemeToggle";
 
 export default function Login() {
     const navigate = useNavigate();
 
     return (
         <main className="relative flex min-h-screen items-center justify-center bg-inset px-4">
-            <ThemeToggle className="absolute top-4 right-4" />
             <div className="w-full max-w-md">
                 <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm">
                     <div className="mb-8 text-center">
