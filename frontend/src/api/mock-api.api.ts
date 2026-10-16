@@ -23,6 +23,8 @@ export interface MockApi {
     scenarios: MockScenario[];
     successResponse?: MockResponseData;
     errorResponse?: MockResponseData;
+    // Optional example of the JSON this endpoint expects.
+    requestBody?: unknown;
     createdAt: string;
     updatedAt: string;
 }
@@ -33,6 +35,8 @@ export interface CreateMockApiRequest {
     path: string;
     description?: string;
     scenarios?: MockScenario[];
+    // Any JSON value; null on update removes it.
+    requestBody?: unknown;
 }
 
 export type UpdateMockApiRequest = Partial<CreateMockApiRequest>;

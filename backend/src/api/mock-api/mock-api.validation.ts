@@ -30,6 +30,9 @@ export const createMockApiSchema = z.object({
     successResponse: responseDataSchema.optional(),
 
     errorResponse: responseDataSchema.optional(),
+
+    // Any JSON value. null on update removes a previously saved request body.
+    requestBody: z.unknown().optional(),
 });
 
 export const updateMockApiSchema = createMockApiSchema.partial();

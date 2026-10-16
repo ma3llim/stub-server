@@ -22,6 +22,7 @@ export const exportedApiSchema = z
         description: z.string().trim().max(500).optional(),
         successResponse: z.record(z.string(), z.unknown()).optional(),
         errorResponse: z.record(z.string(), z.unknown()).optional(),
+        requestBody: z.unknown().optional(),
         activeScenarioIndex: z.number().int().min(0).nullable().optional(),
         scenarios: z.array(exportedScenarioSchema).max(MAX_SCENARIOS_PER_API).default([]),
     })

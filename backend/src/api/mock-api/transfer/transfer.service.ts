@@ -130,6 +130,7 @@ function toExportedApi(mockApi: MockApiDocument): ExportedApi {
         ...(mockApi.description && { description: mockApi.description }),
         ...(mockApi.successResponse && { successResponse: mockApi.successResponse }),
         ...(mockApi.errorResponse && { errorResponse: mockApi.errorResponse }),
+        ...(mockApi.requestBody !== undefined && mockApi.requestBody !== null && { requestBody: mockApi.requestBody }),
         activeScenarioIndex: activeIndex >= 0 ? activeIndex : null,
         scenarios: mockApi.scenarios.map(toExportedScenario),
     };
@@ -288,6 +289,7 @@ export async function importApis(userId: string, rawFile: unknown, conflictStrat
                 description: api.description,
                 successResponse: api.successResponse,
                 errorResponse: api.errorResponse,
+                requestBody: api.requestBody ?? undefined,
                 ...buildScenarios(api),
             });
             items[index].result = "created";
@@ -304,6 +306,7 @@ export async function importApis(userId: string, rawFile: unknown, conflictStrat
             description: api.description,
             successResponse: api.successResponse,
             errorResponse: api.errorResponse,
+            requestBody: api.requestBody ?? undefined,
             ...buildScenarios(api),
         });
         await match.save();

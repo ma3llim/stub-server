@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, Bot, Copy, Check, Braces } from "lucide-react";
 import ScenarioList from "./ScenarioList";
 import ScenarioChat from "../ai/ScenarioChat";
 import MockResponseModal from "./MockResponseModal";
+import JsonCodeEditor from "./JsonCodeEditor";
 import type { MockResponseType } from "../../api/response.api";
 import { methodStyles, methodStylesText } from "./method-styles";
 
@@ -123,6 +124,20 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                                 </div>
                             </div>
                         </section>
+
+                        {mockApi.requestBody !== undefined && mockApi.requestBody !== null && (
+                            <section>
+                                <h4 className="mb-3 text-sm font-semibold text-text-primary">Request Body</h4>
+                                <JsonCodeEditor
+                                    value={JSON.stringify(mockApi.requestBody, null, 2)}
+                                    onChange={() => {}}
+                                    readOnly
+                                    showFormatButton={false}
+                                    aria-label="Example request body"
+                                    className="h-48 rounded-lg border border-border text-xs"
+                                />
+                            </section>
+                        )}
 
                         <section className="rounded-lg border border-border p-4">
                             <ScenarioList

@@ -9,9 +9,12 @@ function toObjectId(id: string): mongoose.Types.ObjectId {
 }
 
 export async function createMockApi(userId: string, data: CreateMockApiInput): Promise<MockApiDocument> {
+    const { requestBody, ...rest } = data;
+
     const mockApi = await MockApi.create({
         userId: toObjectId(userId),
-        ...data,
+        ...rest,
+        ...(requestBody !== undefined && requestBody !== null && { requestBody }),
     });
 
     return mockApi;
@@ -50,6 +53,7 @@ export async function updateMockApi(userId: string, id: string, data: UpdateMock
         }),
         ...(data.successResponse !== undefined && { successResponse: data.successResponse }),
         ...(data.errorResponse !== undefined && { errorResponse: data.errorResponse }),
+        ...(data.requestBody !== undefined && data.requestBody !== null && { requestBody: data.requestBody }),
     };
 
     return MockApi.findOneAndUpdate(
@@ -59,6 +63,8 @@ export async function updateMockApi(userId: string, id: string, data: UpdateMock
         },
         {
             $set: updateData,
+            // Sending requestBody: null clears it.
+            ...(data.requestBody === null && { $unset: { requestBody: 1 } }),
         },
         {
             new: true,

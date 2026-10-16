@@ -21,6 +21,7 @@ export interface ExportedApi {
     description?: string;
     successResponse?: Record<string, unknown>;
     errorResponse?: Record<string, unknown>;
+    requestBody?: unknown;
     activeScenarioIndex?: number | null;
     scenarios: ExportedScenario[];
 }

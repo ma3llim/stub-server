@@ -1,7 +1,14 @@
 import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
-import { FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { createMockApi, updateMockApi, type HttpMethod, type MockApi } from "../../api/mock-api.api";
 import { X } from "lucide-react";
+import JsonCodeEditor from "./JsonCodeEditor";
+
+const BODY_METHODS = new Set<HttpMethod>(["POST", "PUT", "PATCH"]);
+
+function formatRequestBody(value: unknown): string {
+    return value === undefined || value === null ? "" : JSON.stringify(value, null, 2);
+}
 
 interface CreateMockApiModalProps {
     mockApi?: MockApi | null;
@@ -18,6 +25,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
     const [method, setMethod] = useState<HttpMethod>("GET");
     const [path, setPath] = useState("");
     const [description, setDescription] = useState("");
+    const [requestBody, setRequestBody] = useState("");
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -28,6 +36,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
             setMethod("GET");
             setPath("");
             setDescription("");
+            setRequestBody("");
             return;
         }
 
@@ -35,12 +44,26 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
         setMethod(mockApi.method);
         setPath(mockApi.path);
         setDescription(mockApi.description ?? "");
+        setRequestBody(formatRequestBody(mockApi.requestBody));
     }, [mockApi]);
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
         event.preventDefault();
 
         setError("");
+
+        // Empty means "no request body"; anything else must be valid JSON.
+        let parsedRequestBody: unknown = undefined;
+
+        if (requestBody.trim()) {
+            try {
+                parsedRequestBody = JSON.parse(requestBody);
+            } catch {
+                setError("Request body must be valid JSON, or leave it empty.");
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
@@ -50,6 +73,8 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
                     method,
                     path,
                     description,
+                    // null clears a previously saved body.
+                    requestBody: parsedRequestBody ?? null,
                 });
             } else {
                 await createMockApi({
@@ -58,6 +83,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
                     path,
                     description,
                     scenarios: [],
+                    ...(parsedRequestBody !== undefined && { requestBody: parsedRequestBody }),
                 });
             }
 
@@ -71,7 +97,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-            <div className="w-full max-w-xl rounded-xl border border-border bg-surface shadow-2xl">
+            <div className="flex max-h-[90vh] w-full max-w-xl flex-col rounded-xl border border-border bg-surface shadow-2xl">
                 <div className="flex items-center justify-between border-b border-border px-6 py-4">
                     <div>
                         <h2 className="text-lg font-semibold text-text-primary">{isEditMode ? "Edit API" : "Create Mock API"}</h2>
@@ -84,7 +110,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 p-6">
+                <form onSubmit={handleSubmit} className="min-h-0 space-y-5 overflow-y-auto overscroll-contain p-6">
                     <div>
                         <label className="mb-2 block text-sm font-medium text-text-secondary">API Name</label>
 
@@ -132,6 +158,24 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
                             placeholder="Returns a list of users."
                             rows={3}
                             className="w-full resize-none rounded-lg border border-border-strong bg-inset px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                        />
+                    </div>
+
+                    <div>
+                        <div className="mb-2 flex items-baseline justify-between gap-2">
+                            <label htmlFor="request-body" className="block text-sm font-medium text-text-secondary">
+                                Request Body <span className="font-normal text-text-muted">(optional)</span>
+                            </label>
+                            <span className="text-xs text-text-muted">{BODY_METHODS.has(method) ? "Example JSON this endpoint expects" : `${method} requests usually have no body`}</span>
+                        </div>
+
+                        <JsonCodeEditor
+                            id="request-body"
+                            aria-label="Request body"
+                            value={requestBody}
+                            onChange={setRequestBody}
+                            onFormatError={() => setError("Request body must be valid JSON before it can be formatted.")}
+                            className="h-44 rounded-lg border border-border-strong text-xs"
                         />
                     </div>
 

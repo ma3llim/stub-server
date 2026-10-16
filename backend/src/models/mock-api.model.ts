@@ -23,6 +23,8 @@ export interface MockApiDocument extends Document {
     scenarios: MockScenario[];
     successResponse?: MockResponseData;
     errorResponse?: MockResponseData;
+    // Optional example of the JSON this endpoint expects; documentation only, not validated.
+    requestBody?: unknown;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -116,6 +118,10 @@ const mockApiSchema = new Schema<MockApiDocument>(
         },
 
         errorResponse: {
+            type: Schema.Types.Mixed,
+        },
+
+        requestBody: {
             type: Schema.Types.Mixed,
         },
     },
