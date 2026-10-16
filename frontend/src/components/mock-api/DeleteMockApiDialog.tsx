@@ -29,25 +29,25 @@ export default function DeleteMockApiDialog({ mockApi, onSuccess, onCancel }: De
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-            <div className="w-full max-w-md rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl">
+            <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-2xl">
                 <h2 className="text-lg font-semibold text-text-primary">Delete API</h2>
 
                 <p className="mt-3 text-sm leading-6">
-                    Are you sure you want to delete <strong className="font-semibold text-gray-200">{mockApi.name}</strong>?
+                    Are you sure you want to delete <strong className="font-semibold text-text-primary">{mockApi.name}</strong>?
                 </p>
 
                 <p className="mt-2 font-mono text-xs">
                     {mockApi.method} {mockApi.path}
                 </p>
 
-                {error && <div className="mt-4 rounded-lg border border-red-900 bg-red-950/50 px-4 py-3 text-sm text-red-400">{error}</div>}
+                {error && <div className="mt-4 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div>}
 
                 <div className="mt-6 flex justify-end gap-3">
                     <button
                         type="button"
                         onClick={onCancel}
                         disabled={loading}
-                        className="rounded-lg border border-gray-700 px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-lg border border-border-strong px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -56,7 +56,7 @@ export default function DeleteMockApiDialog({ mockApi, onSuccess, onCancel }: De
                         type="button"
                         onClick={handleDelete}
                         disabled={loading}
-                        className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-lg bg-danger-solid px-4 py-2.5 text-sm font-medium text-white hover:bg-danger-solid-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {loading ? "Deleting..." : "Delete"}
                     </button>

@@ -17,19 +17,19 @@ type SortOption = "created" | "status";
 
 const getStatusCodeStyle = (statusCode: number) => {
     if (statusCode >= 200 && statusCode < 300) {
-        return "bg-green-500/10 text-green-400 border-green-500/20";
+        return "bg-success/10 text-success border-success/25";
     }
 
     if (statusCode >= 300 && statusCode < 400) {
-        return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+        return "bg-warning/10 text-warning border-warning/25";
     }
 
     if (statusCode >= 400 && statusCode < 500) {
-        return "bg-red-500/10 text-red-400 border-red-500/20";
+        return "bg-danger/10 text-danger border-danger/25";
     }
 
     if (statusCode >= 500 && statusCode < 600) {
-        return "bg-red-500/10 text-red-400 border-red-500/20";
+        return "bg-danger/10 text-danger border-danger/25";
     }
 
     return "bg-surface-hover text-text-secondary border-border";
@@ -226,7 +226,7 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
                                                                     ms
                                                                 </span>
 
-                                                                {isActive && <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">Active</span>}
+                                                                {isActive && <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary-text">Active</span>}
                                                             </button>
 
                                                             <div className="flex items-center gap-1.5 px-3">

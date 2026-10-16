@@ -57,7 +57,7 @@ export default function DeleteScenarioDialog({ mockApiId, scenarioId, scenarioNa
                         type="button"
                         onClick={handleDelete}
                         disabled={loading}
-                        className="rounded-lg bg-danger px-4 py-2.5 text-sm font-medium text-white transition hover:bg-danger/90 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-lg bg-danger-solid px-4 py-2.5 text-sm font-medium text-white transition hover:bg-danger-solid-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {loading ? "Deleting..." : "Delete Scenario"}
                     </button>

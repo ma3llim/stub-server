@@ -22,8 +22,8 @@ export default function AppLayout() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-950">
-            <header className="border-b border-gray-800 bg-gray-900">
+        <div className="min-h-screen bg-background">
+            <header className="border-b border-border bg-surface">
                 <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
                     <div className="flex items-center gap-8">
                         <h1 className="text-lg font-bold text-text-primary">Mock API</h1>
@@ -34,7 +34,7 @@ export default function AppLayout() {
                                     key={item.to}
                                     to={item.to}
                                     className={({ isActive }) =>
-                                        `rounded-lg px-3 py-2 text-sm font-medium transition ${isActive ? "bg-gray-800 text-text-primary" : "text-gray-400 hover:bg-gray-800 hover:text-text-primary"}`
+                                        `rounded-lg px-3 py-2 text-sm font-medium transition ${isActive ? "bg-surface-hover text-text-primary" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"}`
                                     }
                                 >
                                     {item.label}
@@ -44,11 +44,11 @@ export default function AppLayout() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <span className="hidden text-sm text-gray-400 sm:block">{user?.username}</span>
+                        <span className="hidden text-sm text-text-secondary sm:block">{user?.username}</span>
 
                         <ThemeToggle />
 
-                        <button type="button" onClick={handleLogout} className="rounded-lg border border-gray-700 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800">
+                        <button type="button" onClick={handleLogout} className="rounded-lg border border-border-strong px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-hover">
                             Logout
                         </button>
                     </div>

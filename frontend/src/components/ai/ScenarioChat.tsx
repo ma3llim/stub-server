@@ -140,7 +140,7 @@ export default function ScenarioChat({ mockApiId, successResponse, errorResponse
                                                     blockquote: ({ children }) => <blockquote className="my-2 border-l-2 border-primary/50 pl-3 italic text-text-muted">{children}</blockquote>,
 
                                                     a: ({ children, href }) => (
-                                                        <a href={href} target="_blank" rel="noopener noreferrer" className="break-all text-primary underline underline-offset-2 hover:opacity-80">
+                                                        <a href={href} target="_blank" rel="noopener noreferrer" className="break-all text-primary-text underline underline-offset-2 hover:opacity-80">
                                                             {children}
                                                         </a>
                                                     ),

@@ -29,17 +29,37 @@ function applyTheme(theme: Theme): void {
     }
 }
 
+const TRANSITION_MS = 280;
+
+// Cross-fades the whole page when the browser supports View Transitions;
+// otherwise briefly animates colors via the .theme-transition class in index.css.
+function switchThemeSmoothly(theme: Theme): void {
+    const root = document.documentElement;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduceMotion) {
+        applyTheme(theme);
+        return;
+    }
+
+    if (typeof document.startViewTransition === "function") {
+        document.startViewTransition(() => applyTheme(theme));
+        return;
+    }
+
+    root.classList.add("theme-transition");
+    applyTheme(theme);
+    window.setTimeout(() => root.classList.remove("theme-transition"), TRANSITION_MS);
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
     const toggleTheme = useCallback(() => {
-        setTheme((current) => {
-            const next = current === "dark" ? "light" : "dark";
+        const next: Theme = document.documentElement.classList.contains("light") ? "dark" : "light";
 
-            applyTheme(next);
-
-            return next;
-        });
+        switchThemeSmoothly(next);
+        setTheme(next);
     }, []);
 
     return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>;

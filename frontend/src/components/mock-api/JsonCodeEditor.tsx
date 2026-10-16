@@ -134,12 +134,12 @@ export default function JsonCodeEditor({
     return (
         <div className={`json-code-editor flex flex-col overflow-hidden ${className}`}>
             {showFormatButton && (
-                <div className="flex shrink-0 justify-end border-b border-gray-700 px-2 py-1.5">
+                <div className="flex shrink-0 justify-end border-b border-border-strong px-2 py-1.5">
                     <button
                         type="button"
                         onClick={formatJson}
                         disabled={readOnly}
-                        className="rounded-md border border-gray-700 px-2.5 py-1 text-xs font-medium text-gray-300 transition hover:bg-gray-800"
+                        className="rounded-md border border-border-strong px-2.5 py-1 text-xs font-medium text-text-secondary transition hover:bg-surface-hover"
                     >
                         Format JSON
                     </button>
