@@ -1,3 +1,4 @@
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { useEffect, useState } from "react";
 import { createScenario, updateScenario, type CreateScenarioRequest, type MockScenario } from "../../api/scenario.api";
 import { X } from "lucide-react";
@@ -11,6 +12,8 @@ interface ScenarioModalProps {
 }
 
 export default function ScenarioModal({ mockApiId, scenario, onSuccess, onClose }: ScenarioModalProps) {
+    useBodyScrollLock();
+
     const [name, setName] = useState("");
     const [statusCode, setStatusCode] = useState(200);
     const [headers, setHeaders] = useState("{}");

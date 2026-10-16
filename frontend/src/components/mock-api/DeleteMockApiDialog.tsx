@@ -1,3 +1,4 @@
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { useState } from "react";
 
 import { deleteMockApi, type MockApi } from "../../api/mock-api.api";
@@ -9,6 +10,8 @@ interface DeleteMockApiDialogProps {
 }
 
 export default function DeleteMockApiDialog({ mockApi, onSuccess, onCancel }: DeleteMockApiDialogProps) {
+    useBodyScrollLock();
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 

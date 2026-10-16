@@ -106,7 +106,7 @@ export default function ScenarioChat({ mockApiId, successResponse, errorResponse
             </div>
 
             {/* Messages */}
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
                 <div className="space-y-3">
                     {messages.map((message, index) => {
                         const isUser = message.role === "user";

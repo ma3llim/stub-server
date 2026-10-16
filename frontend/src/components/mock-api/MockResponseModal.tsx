@@ -1,3 +1,4 @@
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Braces, X } from "lucide-react";
@@ -37,6 +38,8 @@ function isJsonObject(value: unknown): value is Record<string, unknown> {
 }
 
 export default function MockResponseModal({ mockApi, type, onClose, onResponseChange }: MockResponseModalProps) {
+    useBodyScrollLock();
+
     const response = type === "success" ? mockApi.successResponse : mockApi.errorResponse;
     const [editor, setEditor] = useState(() => createEditorState(response));
     const [error, setError] = useState("");

@@ -1,10 +1,13 @@
 import { useState } from "react";
-import type { HttpMethod, MockApi, MockResponseData } from "../../api/mock-api.api";
-import { ChevronDown, ChevronUp, Bot, Copy, Check, Braces } from "lucide-react";
+import type { MockApi, MockResponseData } from "../../api/mock-api.api";
+import { ChevronDown, ChevronUp, Bot, Copy, Check, Braces, Download, Loader2 } from "lucide-react";
 import ScenarioList from "./ScenarioList";
 import ScenarioChat from "../ai/ScenarioChat";
 import MockResponseModal from "./MockResponseModal";
 import type { MockResponseType } from "../../api/response.api";
+import { exportApi } from "../../api/transfer.api";
+import { downloadJson, exportFileName, toTransferError } from "../transfer/transfer-utils";
+import { methodStyles, methodStylesText } from "./method-styles";
 
 interface ApiEndpointProps {
     mockApi: MockApi;
@@ -12,21 +15,6 @@ interface ApiEndpointProps {
     onDelete: (mockApi: MockApi) => void;
 }
 
-const methodStyles: Record<HttpMethod, string> = {
-    GET: "bg-green-700 text-white",
-    POST: "bg-blue-600 text-white",
-    PUT: "bg-orange-700 text-white",
-    PATCH: "bg-purple-600 text-white",
-    DELETE: "bg-red-600 text-white",
-};
-
-const methodStylesText: Record<HttpMethod, string> = {
-    GET: "text-green-700 dark:text-green-400",
-    POST: "text-blue-700 dark:text-blue-400",
-    PUT: "text-orange-700 dark:text-orange-400",
-    PATCH: "text-purple-700 dark:text-purple-400",
-    DELETE: "text-red-700 dark:text-red-400",
-};
 
 export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointProps) {
     const [expanded, setExpanded] = useState(false);
@@ -37,6 +25,23 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
     const [successResponse, setSuccessResponse] = useState(mockApi.successResponse);
     const [errorResponse, setErrorResponse] = useState(mockApi.errorResponse);
     const [copied, setCopied] = useState(false);
+    const [exporting, setExporting] = useState(false);
+    const [exportError, setExportError] = useState("");
+
+    async function handleExport(): Promise<void> {
+        setExporting(true);
+        setExportError("");
+
+        try {
+            const file = await exportApi(mockApi._id);
+
+            downloadJson(file, exportFileName(mockApi.method, mockApi.path));
+        } catch (error) {
+            setExportError(toTransferError(error, "Failed to export this API.").message);
+        } finally {
+            setExporting(false);
+        }
+    }
 
     const customEndpoint = `${import.meta.env.VITE_MOCK_SERVER_URL}${mockApi.path}`;
 
@@ -115,7 +120,18 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                                 <Bot className="h-4 w-4" />
                                 AI Assistant
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => void handleExport()}
+                                disabled={exporting}
+                                title="Download this API and all its scenarios as a file you can share"
+                                className="flex items-center gap-2 rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-text-secondary transition hover:bg-surface-hover disabled:cursor-progress disabled:opacity-60"
+                            >
+                                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                {exporting ? "Exporting..." : "Export API"}
+                            </button>
                         </div>
+                        {exportError && <div className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">{exportError}</div>}
                         <section>
                             <h4 className="mb-3 text-sm font-semibold text-text-primary">Endpoint</h4>
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -140,7 +156,13 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                         </section>
 
                         <section className="rounded-lg border border-border p-4">
-                            <ScenarioList mockApiId={mockApi._id} activeScenarioId={activeScenarioId} onActiveScenarioChange={handleScenarioChanged} refreshTrigger={scenarioRefreshTrigger} />
+                            <ScenarioList
+                                mockApiId={mockApi._id}
+                                mockApiLabel={`${mockApi.method} ${mockApi.path}`}
+                                activeScenarioId={activeScenarioId}
+                                onActiveScenarioChange={handleScenarioChanged}
+                                refreshTrigger={scenarioRefreshTrigger}
+                            />
                         </section>
                     </div>
                 </div>

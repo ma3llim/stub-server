@@ -17,7 +17,7 @@ export function matchPath(pattern: string, requestPath: string): boolean {
     });
 }
 
-function normalizePath(path: string): string {
+export function normalizePath(path: string): string {
     let normalized = path.trim();
 
     if (!normalized.startsWith("/")) {

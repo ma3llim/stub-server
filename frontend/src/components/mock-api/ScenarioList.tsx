@@ -3,11 +3,15 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-p
 import { activateScenario, getScenarios, type MockScenario } from "../../api/scenario.api";
 import ScenarioModal from "./ScenarioModal";
 import DeleteScenarioDialog from "./DeleteScenarioDialog";
-import { ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import { ChevronDown, ChevronUp, Download, GripVertical, Loader2, Upload } from "lucide-react";
 import JsonCodeEditor from "./JsonCodeEditor";
+import ImportScenarioModal from "../transfer/ImportScenarioModal";
+import { exportScenario } from "../../api/transfer.api";
+import { downloadJson, exportFileName, toTransferError } from "../transfer/transfer-utils";
 
 interface ScenarioListProps {
     mockApiId: string;
+    mockApiLabel: string;
     activeScenarioId?: string;
     onActiveScenarioChange?: (scenarioId: string) => void;
     refreshTrigger?: number;
@@ -35,7 +39,9 @@ const getStatusCodeStyle = (statusCode: number) => {
     return "bg-surface-hover text-text-secondary border-border";
 };
 
-export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScenarioChange, refreshTrigger = 0 }: ScenarioListProps) {
+export default function ScenarioList({ mockApiId, mockApiLabel, activeScenarioId, onActiveScenarioChange, refreshTrigger = 0 }: ScenarioListProps) {
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [exportingScenarioId, setExportingScenarioId] = useState<string | null>(null);
     const [scenarios, setScenarios] = useState<MockScenario[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -89,6 +95,29 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
 
         setShowModal(false);
         setEditingScenario(null);
+    }
+
+    async function handleExport(scenario: MockScenario) {
+        setExportingScenarioId(scenario._id);
+        setError("");
+
+        try {
+            const file = await exportScenario(mockApiId, scenario._id);
+
+            downloadJson(file, exportFileName("scenario", String(scenario.statusCode), scenario.name));
+        } catch (exportError) {
+            setError(toTransferError(exportError, "Failed to export the scenario.").message);
+        } finally {
+            setExportingScenarioId(null);
+        }
+    }
+
+    function handleScenarioImported(scenario: MockScenario, activated: boolean) {
+        setScenarios((current) => [...current, scenario]);
+
+        if (activated) {
+            onActiveScenarioChange?.(scenario._id);
+        }
     }
 
     function handleScenarioDeleted() {
@@ -162,6 +191,16 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
 
                             <ChevronDown size={14} strokeWidth={1.8} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
                         </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowImportModal(true)}
+                            title="Import a scenario someone shared with you"
+                            className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3.5 py-2 text-xs font-medium text-text-secondary transition hover:bg-surface-hover hover:text-text-primary"
+                        >
+                            <Upload className="h-3.5 w-3.5" />
+                            Import
+                        </button>
 
                         <button
                             type="button"
@@ -253,6 +292,18 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
 
                                                                 <button
                                                                     type="button"
+                                                                    onClick={() => void handleExport(scenario)}
+                                                                    disabled={exportingScenarioId === scenario._id}
+                                                                    title="Download this scenario as a file you can share"
+                                                                    aria-label={`Export ${scenario.name}`}
+                                                                    className="flex items-center gap-1 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary shadow-sm transition hover:bg-surface-hover hover:text-text-primary disabled:cursor-progress disabled:opacity-60"
+                                                                >
+                                                                    {exportingScenarioId === scenario._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                                                                    Export
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
                                                                     onClick={() => setDeletingScenario(scenario)}
                                                                     className="rounded-md border border-danger/20 bg-danger/5 px-3 py-1.5 text-xs font-medium text-danger shadow-sm transition hover:bg-danger/10"
                                                                 >
@@ -325,6 +376,10 @@ export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScen
                         setEditingScenario(null);
                     }}
                 />
+            )}
+
+            {showImportModal && (
+                <ImportScenarioModal mockApiId={mockApiId} mockApiLabel={mockApiLabel} onImported={handleScenarioImported} onClose={() => setShowImportModal(false)} />
             )}
 
             {deletingScenario && (

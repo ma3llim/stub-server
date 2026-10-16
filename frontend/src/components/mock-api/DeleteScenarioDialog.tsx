@@ -1,3 +1,4 @@
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { useState } from "react";
 import { deleteScenario } from "../../api/scenario.api";
 
@@ -10,6 +11,8 @@ interface DeleteScenarioDialogProps {
 }
 
 export default function DeleteScenarioDialog({ mockApiId, scenarioId, scenarioName, onSuccess, onClose }: DeleteScenarioDialogProps) {
+    useBodyScrollLock();
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 

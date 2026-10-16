@@ -1,3 +1,4 @@
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock";
 import { FormEvent, useEffect, useState } from "react";
 import { createMockApi, updateMockApi, type HttpMethod, type MockApi } from "../../api/mock-api.api";
 import { X } from "lucide-react";
@@ -9,6 +10,8 @@ interface CreateMockApiModalProps {
 }
 
 export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: CreateMockApiModalProps) {
+    useBodyScrollLock();
+
     const isEditMode = Boolean(mockApi);
 
     const [name, setName] = useState("");

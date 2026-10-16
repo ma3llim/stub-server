@@ -1,196 +1,74 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { AlertTriangle, Mail, MapPin, RefreshCw, Search, Users } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { AlertTriangle, Loader2, Send } from "lucide-react";
 
+import type { HttpMethod } from "../api/mock-api.api";
+import JsonCodeEditor from "../components/mock-api/JsonCodeEditor";
+import { methodStylesText } from "../components/mock-api/method-styles";
+
+const METHODS: HttpMethod[] = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 const TIMEOUT_MS = 15000;
 
-interface TeamMember {
-    id: string | number;
-    name: string;
-    role: string;
-    email: string;
-    location: string;
-    status: string;
-    avatar: string;
+interface DemoResponse {
+    status: number;
+    statusText: string;
+    durationMs: number;
+    sizeBytes: number;
+    contentType: string;
+    body: string;
+    isJson: boolean;
+    headers: Record<string, string>;
 }
 
 interface DemoError {
     title: string;
     message: string;
-    body?: unknown;
 }
 
-type DemoState =
-    | { status: "idle" }
-    | { status: "loading" }
-    | { status: "success"; members: TeamMember[] }
-    | { status: "empty" }
-    | { status: "error"; error: DemoError };
+type DemoState = { status: "idle" } | { status: "loading" } | { status: "done"; response: DemoResponse } | { status: "error"; error: DemoError };
 
-class HttpError extends Error {
-    status: number;
-    body: unknown;
-
-    constructor(status: number, message: string, body: unknown) {
-        super(message);
-        this.status = status;
-        this.body = body;
-    }
-}
-
-type JsonObject = Record<string, unknown>;
-
-function isObject(value: unknown): value is JsonObject {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-class DataError extends Error {}
-
-function memberName(item: JsonObject): string {
-    if (typeof item.name === "string") {
-        return item.name.trim();
-    }
-
-    return [item.firstName, item.lastName]
-        .filter((part) => typeof part === "string")
-        .join(" ")
-        .trim();
-}
-
-// Accepts [...], { data: [...] }, { members: [...] }, { team: [...] }, or a single member object.
-function normalizeMembers(body: unknown): TeamMember[] {
-    let list: unknown = Array.isArray(body) ? body : isObject(body) ? (body.data ?? body.members ?? body.team) : undefined;
-
-    if (isObject(list)) {
-        list = [list];
-    }
-
-    if (!Array.isArray(list)) {
-        throw new DataError('Expected a list of team members, such as { "data": [ ... ] }.');
-    }
-
-    const valid = list.filter((item): item is JsonObject => isObject(item) && memberName(item) !== "");
-
-    if (list.length > 0 && valid.length === 0) {
-        throw new DataError('None of the returned items have a "name" (or "firstName"/"lastName") field.');
-    }
-
-    return valid.map((item, index) => ({
-        id: typeof item.id === "string" || typeof item.id === "number" ? item.id : typeof item._id === "string" ? item._id : index,
-        name: memberName(item),
-        role: String(item.role ?? item.title ?? ""),
-        email: String(item.email ?? ""),
-        location: String(item.location ?? ""),
-        status: String(item.status ?? "").toLowerCase(),
-        avatar: String(item.avatar ?? item.avatarUrl ?? ""),
-    }));
-}
-
-async function readBody(response: Response): Promise<unknown> {
-    const text = await response.text();
-
-    if (!text) {
-        return null;
+// Pretty-prints JSON when the body is JSON; otherwise returns the text unchanged.
+function formatBody(text: string): { body: string; isJson: boolean } {
+    if (!text.trim()) {
+        return { body: "", isJson: false };
     }
 
     try {
-        return JSON.parse(text);
+        return { body: JSON.stringify(JSON.parse(text), null, 2), isJson: true };
     } catch {
-        if (response.ok) {
-            throw new DataError("The response is not valid JSON.");
-        }
-
-        return text;
+        return { body: text, isJson: false };
     }
 }
 
-function errorMessageFrom(body: unknown, response: Response): string {
-    if (isObject(body)) {
-        const message = body.message ?? body.error;
-
-        return typeof message === "string" ? message : response.statusText;
-    }
-
-    return response.statusText || "Request failed";
+function formatBytes(bytes: number): string {
+    return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
 }
 
-function toDemoError(error: unknown, timedOut: boolean): DemoError {
-    if (timedOut) {
-        return { title: "Request timed out", message: `No response within ${TIMEOUT_MS / 1000} seconds. Check the scenario's delay.` };
+function statusClass(status: number): string {
+    if (status >= 200 && status < 300) {
+        return "border-success/30 bg-success/10 text-success";
     }
 
-    if (error instanceof HttpError) {
-        if (error.status === 404) {
-            return { title: "Endpoint not found", message: `${error.message}. Make sure the Mock API exists and has an active scenario.`, body: error.body };
-        }
-
-        if (error.status === 401 || error.status === 403) {
-            return { title: "Not authorized", message: error.message, body: error.body };
-        }
-
-        if (error.status >= 500) {
-            return { title: "Server error", message: error.message, body: error.body };
-        }
-
-        return { title: `Request failed (${error.status})`, message: error.message, body: error.body };
+    if (status >= 300 && status < 400) {
+        return "border-warning/30 bg-warning/10 text-warning";
     }
 
-    if (error instanceof DataError) {
-        return { title: "Unexpected response format", message: error.message };
-    }
-
-    if (error instanceof TypeError) {
-        return { title: "Can't reach the server", message: "The request failed before a response arrived. Is the mock server running?" };
-    }
-
-    return { title: "Something went wrong", message: error instanceof Error ? error.message : "Unknown error" };
+    return "border-danger/30 bg-danger/10 text-danger";
 }
-
-function initials(name: string): string {
-    return name
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0].toUpperCase())
-        .join("");
-}
-
-function avatarColor(name: string): string {
-    let hash = 0;
-
-    for (const ch of name) {
-        hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-    }
-
-    return `hsl(${hash % 360} 55% 45%)`;
-}
-
-const statusDotClass: Record<string, string> = {
-    active: "bg-success",
-    away: "bg-warning",
-};
-
-const badgeClass: Record<DemoState["status"], string> = {
-    idle: "text-text-secondary",
-    loading: "text-warning",
-    success: "text-success",
-    empty: "text-text-secondary",
-    error: "text-danger",
-};
 
 export default function Demo() {
-    const [endpoint, setEndpoint] = useState("");
+    const [method, setMethod] = useState<HttpMethod>("GET");
+    const [url, setUrl] = useState("");
     const [state, setState] = useState<DemoState>({ status: "idle" });
-    const [meta, setMeta] = useState("");
-    const [query, setQuery] = useState("");
+    const [tab, setTab] = useState<"body" | "headers">("body");
 
     const controllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => () => controllerRef.current?.abort(), []);
 
-    async function loadTeam(): Promise<void> {
-        const url = endpoint.trim();
+    async function sendRequest(): Promise<void> {
+        const target = url.trim();
 
-        if (!url) {
+        if (!target) {
             return;
         }
 
@@ -199,252 +77,173 @@ export default function Demo() {
         controllerRef.current = controller;
 
         let timedOut = false;
-        const timer = setTimeout(() => {
+        const timer = window.setTimeout(() => {
             timedOut = true;
             controller.abort();
         }, TIMEOUT_MS);
 
         setState({ status: "loading" });
-        setMeta(`GET ${url}`);
-        setQuery("");
         const startedAt = performance.now();
 
         try {
-            const response = await fetch(url, {
-                signal: controller.signal,
-                headers: { Accept: "application/json" },
-            });
-            const body = await readBody(response);
+            const response = await fetch(target, { method, signal: controller.signal });
+            const text = await response.text();
 
             if (controller !== controllerRef.current) {
                 return;
             }
 
-            setMeta(`HTTP ${response.status} · ${Math.round(performance.now() - startedAt)} ms`);
-
-            if (!response.ok) {
-                throw new HttpError(response.status, errorMessageFrom(body, response), body);
-            }
-
-            const members = normalizeMembers(body);
-
-            setState(members.length === 0 ? { status: "empty" } : { status: "success", members });
+            setState({
+                status: "done",
+                response: {
+                    status: response.status,
+                    statusText: response.statusText,
+                    durationMs: Math.round(performance.now() - startedAt),
+                    sizeBytes: new Blob([text]).size,
+                    contentType: response.headers.get("content-type") ?? "",
+                    headers: Object.fromEntries(response.headers.entries()),
+                    ...formatBody(text),
+                },
+            });
         } catch (error) {
             if (controller !== controllerRef.current) {
                 return;
             }
 
+            let demoError: DemoError = { title: "Request failed", message: error instanceof Error ? error.message : "Unknown error" };
+
             if (timedOut) {
-                setMeta("Timed out");
+                demoError = { title: "Request timed out", message: `No response within ${TIMEOUT_MS / 1000} seconds. Check the scenario's delay.` };
             } else if (error instanceof TypeError) {
-                setMeta("Network error");
+                demoError = {
+                    title: "Can't reach the server",
+                    message: "The request failed before a response arrived. Check the URL, that the mock server is running, and that it allows cross-origin requests.",
+                };
             }
 
-            setState({ status: "error", error: toDemoError(error, timedOut) });
+            setState({ status: "error", error: demoError });
         } finally {
-            clearTimeout(timer);
+            window.clearTimeout(timer);
         }
     }
 
     function handleSubmit(event: FormEvent<HTMLFormElement>): void {
         event.preventDefault();
-        void loadTeam();
+        void sendRequest();
     }
 
-    const visibleMembers = useMemo(() => {
-        if (state.status !== "success") {
-            return [];
-        }
-
-        const term = query.trim().toLowerCase();
-
-        return state.members.filter((member) => [member.name, member.role, member.location].some((field) => field.toLowerCase().includes(term)));
-    }, [state, query]);
+    const loading = state.status === "loading";
 
     return (
         <main className="mx-auto w-full max-w-7xl px-6 py-8">
             <div className="mb-8">
-                <p className="text-sm font-medium text-primary-text">Demo</p>
-                <h2 className="mt-1 text-2xl font-bold text-text-primary">Our Team</h2>
-                <p className="mt-2 text-sm text-text-secondary">Load team members from a mock API and see how the page handles loading, empty, and error responses.</p>
+                <h2 className="text-2xl font-bold text-text-primary">Demo</h2>
+                <p className="mt-2 text-sm text-text-secondary">Call any mock API and see exactly what it returns.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="mb-3 flex flex-col gap-2 sm:flex-row">
+            <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-2 sm:flex-row">
+                <select
+                    value={method}
+                    onChange={(event) => setMethod(event.target.value as HttpMethod)}
+                    aria-label="HTTP method"
+                    className={`rounded-lg border border-border bg-surface px-3 py-2.5 font-mono text-sm font-bold outline-none focus:border-primary ${methodStylesText[method]}`}
+                >
+                    {METHODS.map((item) => (
+                        <option key={item} value={item}>
+                            {item}
+                        </option>
+                    ))}
+                </select>
+
                 <input
                     type="url"
                     required
-                    value={endpoint}
-                    onChange={(event) => setEndpoint(event.target.value)}
+                    value={url}
+                    onChange={(event) => setUrl(event.target.value)}
                     placeholder="Enter mock API URL"
-                    aria-label="Endpoint URL"
-                    className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-4 py-2.5 text-sm text-text-primary focus:border-primary"
+                    aria-label="Request URL"
+                    className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-4 py-2.5 font-mono text-sm text-text-primary outline-none focus:border-primary"
                 />
 
                 <button
                     type="submit"
-                    disabled={state.status === "loading"}
-                    className="flex items-center justify-center gap-2 rounded-lg bg-text-primary px-5 py-2.5 text-sm font-medium text-surface shadow-sm transition hover:opacity-90 disabled:opacity-60"
+                    disabled={loading}
+                    className="flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-progress disabled:opacity-60"
                 >
-                    <RefreshCw className={`h-4 w-4 ${state.status === "loading" ? "animate-spin" : ""}`} />
-                    Load team
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    {loading ? "Sending..." : state.status === "done" ? "Send again" : "Send"}
                 </button>
             </form>
 
-            <div className="mb-6 flex flex-wrap items-center gap-3 text-xs text-text-muted" aria-live="polite">
-                <span className={`rounded-full border border-border px-2.5 py-0.5 font-semibold ${badgeClass[state.status]}`}>{state.status}</span>
-                {meta && <span className="font-mono">{meta}</span>}
-            </div>
-
             {state.status === "idle" && (
-                <Panel icon={<Users className="h-6 w-6 text-text-secondary" />} title="No data loaded" message={`Enter a mock API URL, for example ${import.meta.env.VITE_MOCK_SERVER_URL ?? ""}/api/v1/team, and click Load team.`} />
+                <div className="rounded-lg border border-dashed border-border bg-surface px-6 py-16 text-center text-sm text-text-muted">The response will appear here.</div>
             )}
 
-            {state.status === "loading" && (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {Array.from({ length: 6 }, (_, index) => (
-                        <div key={index} aria-hidden="true" className="flex animate-pulse gap-4 rounded-lg border border-border bg-surface p-4">
-                            <div className="h-12 w-12 flex-none rounded-full bg-surface-hover" />
-                            <div className="flex-1 space-y-2 py-1">
-                                <div className="h-3 w-3/4 rounded bg-surface-hover" />
-                                <div className="h-3 w-1/2 rounded bg-surface-hover" />
-                                <div className="h-3 w-5/6 rounded bg-surface-hover" />
-                            </div>
-                        </div>
-                    ))}
+            {loading && (
+                <div className="flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-6 py-16 text-sm text-text-secondary">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Waiting for response...
                 </div>
-            )}
-
-            {state.status === "empty" && (
-                <Panel
-                    icon={<Users className="h-6 w-6 text-text-secondary" />}
-                    title="No team members yet"
-                    message="The request succeeded, but the endpoint returned an empty list."
-                    action={<RetryButton onClick={loadTeam} label="Reload" />}
-                />
             )}
 
             {state.status === "error" && (
-                <div role="alert" className="rounded-lg border border-danger/30 bg-danger/10 px-6 py-12 text-center">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-danger/15">
-                        <AlertTriangle className="h-6 w-6 text-danger" />
-                    </div>
-
-                    <h3 className="mt-4 text-lg font-semibold text-danger">{state.error.title}</h3>
-                    <p className="mx-auto mt-2 max-w-md text-sm text-text-secondary">{state.error.message}</p>
-
-                    {state.error.body != null && (
-                        <pre className="mx-auto mt-4 max-w-xl overflow-auto rounded-md border border-border bg-inset p-3 text-left text-xs text-text-secondary">
-                            {typeof state.error.body === "string" ? state.error.body : JSON.stringify(state.error.body, null, 2)}
-                        </pre>
-                    )}
-
-                    <div className="mt-6">
-                        <RetryButton onClick={loadTeam} label="Try again" />
+                <div role="alert" className="flex gap-3 rounded-lg border border-danger/30 bg-danger/10 px-5 py-4">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 flex-none text-danger" />
+                    <div>
+                        <p className="text-sm font-semibold text-danger">{state.error.title}</p>
+                        <p className="mt-1 text-sm text-text-secondary">{state.error.message}</p>
                     </div>
                 </div>
             )}
 
-            {state.status === "success" && (
-                <>
-                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <div className="relative flex-1">
-                            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                            <input
-                                type="search"
-                                value={query}
-                                onChange={(event) => setQuery(event.target.value)}
-                                placeholder="Search by name, role or location"
-                                aria-label="Search team"
-                                className="w-full rounded-lg border border-border bg-surface py-2.5 pr-4 pl-9 text-sm text-text-primary focus:border-primary"
-                            />
-                        </div>
-
-                        <span className="text-sm text-text-secondary">
-                            {query.trim()
-                                ? `${visibleMembers.length} of ${state.members.length} members`
-                                : `${state.members.length} member${state.members.length === 1 ? "" : "s"}`}
+            {state.status === "done" && (
+                <section className="overflow-hidden rounded-lg border border-border bg-surface">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-3">
+                        <span className={`rounded-md border px-2 py-0.5 font-mono text-xs font-semibold ${statusClass(state.response.status)}`}>
+                            {state.response.status} {state.response.statusText}
                         </span>
-                    </div>
+                        <span className="font-mono text-xs text-text-muted">{state.response.durationMs} ms</span>
+                        <span className="font-mono text-xs text-text-muted">{formatBytes(state.response.sizeBytes)}</span>
+                        {state.response.contentType && <span className="truncate font-mono text-xs text-text-muted">{state.response.contentType}</span>}
 
-                    {visibleMembers.length === 0 ? (
-                        <Panel icon={<Search className="h-6 w-6 text-text-secondary" />} title="No matches" message="No team member matches your search." />
-                    ) : (
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {visibleMembers.map((member) => (
-                                <MemberCard key={member.id} member={member} />
+                        <div className="ml-auto flex rounded-lg border border-border p-0.5" role="tablist">
+                            {(["body", "headers"] as const).map((item) => (
+                                <button
+                                    key={item}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={tab === item}
+                                    onClick={() => setTab(item)}
+                                    className={`rounded-md px-3 py-1 text-xs font-medium capitalize transition ${tab === item ? "bg-surface-hover text-text-primary" : "text-text-muted hover:text-text-primary"}`}
+                                >
+                                    {item}
+                                </button>
                             ))}
                         </div>
+                    </div>
+
+                    {tab === "body" &&
+                        (state.response.body ? (
+                            <>
+                                {!state.response.isJson && <p className="border-b border-border px-4 py-2 text-xs text-text-muted">Response isn't JSON, showing raw text.</p>}
+                                <JsonCodeEditor value={state.response.body} onChange={() => {}} readOnly showFormatButton={false} aria-label="Response body" className="h-112 text-xs" />
+                            </>
+                        ) : (
+                            <p className="px-4 py-12 text-center text-sm text-text-muted">The response has no body.</p>
+                        ))}
+
+                    {tab === "headers" && (
+                        <JsonCodeEditor
+                            value={JSON.stringify(state.response.headers, null, 2)}
+                            onChange={() => {}}
+                            readOnly
+                            showFormatButton={false}
+                            aria-label="Response headers"
+                            className="h-64 text-xs"
+                        />
                     )}
-                </>
+                </section>
             )}
         </main>
-    );
-}
-
-function MemberCard({ member }: { member: TeamMember }) {
-    const [imageFailed, setImageFailed] = useState(false);
-
-    return (
-        <article className="flex min-w-0 gap-4 rounded-lg border border-border bg-surface p-4">
-            <div className="flex h-12 w-12 flex-none items-center justify-center overflow-hidden rounded-full font-bold text-white" style={{ background: avatarColor(member.name) }}>
-                {member.avatar && !imageFailed ? (
-                    <img src={member.avatar} alt="" onError={() => setImageFailed(true)} className="h-full w-full object-cover" />
-                ) : (
-                    initials(member.name)
-                )}
-            </div>
-
-            <div className="min-w-0">
-                <p className="font-semibold text-text-primary">{member.name}</p>
-                {member.role && <p className="text-sm text-text-secondary">{member.role}</p>}
-
-                <div className="mt-2 space-y-1 text-xs text-text-muted">
-                    {member.email && (
-                        <a href={`mailto:${member.email}`} className="flex items-center gap-1.5 break-all text-primary-text hover:underline">
-                            <Mail className="h-3.5 w-3.5 flex-none" />
-                            {member.email}
-                        </a>
-                    )}
-
-                    {member.location && (
-                        <p className="flex items-center gap-1.5">
-                            <MapPin className="h-3.5 w-3.5 flex-none" />
-                            {member.location}
-                        </p>
-                    )}
-                </div>
-
-                {member.status && (
-                    <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-text-secondary capitalize">
-                        <span className={`h-2 w-2 rounded-full ${statusDotClass[member.status] ?? "bg-text-muted"}`} />
-                        {member.status}
-                    </span>
-                )}
-            </div>
-        </article>
-    );
-}
-
-function Panel({ icon, title, message, action }: { icon: ReactNode; title: string; message: string; action?: ReactNode }) {
-    return (
-        <div className="rounded-lg border border-dashed border-border bg-surface px-6 py-16 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-hover">{icon}</div>
-            <h3 className="mt-4 text-lg font-semibold text-text-primary">{title}</h3>
-            <p className="mx-auto mt-2 max-w-md text-sm text-text-secondary">{message}</p>
-            {action && <div className="mt-6">{action}</div>}
-        </div>
-    );
-}
-
-function RetryButton({ onClick, label }: { onClick: () => void; label: string }) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="inline-flex items-center gap-2 rounded-lg border border-border-strong px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-hover"
-        >
-            <RefreshCw className="h-4 w-4" />
-            {label}
-        </button>
     );
 }

@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from "express";
 import { findMockResponse } from "./services/stub.service.js";
 import { errorHandler } from "../middleware/error-handler.js";
@@ -5,6 +6,8 @@ import { errorHandler } from "../middleware/error-handler.js";
 const app = express();
 
 app.disable("x-powered-by");
+// Mock APIs are called from browser apps on other origins (e.g. the Demo page), so allow any origin.
+app.use(cors({ exposedHeaders: "*" }));
 app.use(express.json({ limit: "10mb" }));
 
 app.get("/health", (_req, res) => {
