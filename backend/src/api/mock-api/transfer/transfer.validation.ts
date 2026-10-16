@@ -73,10 +73,6 @@ export const exportSelectionRequestSchema = z.object({
         .max(MAX_IMPORT_APIS),
 });
 
-export const importScenarioRequestSchema = z.object({
-    file: z.unknown(),
-});
-
 export type ExportedScenario = z.infer<typeof exportedScenarioSchema>;
 export type ExportedApi = z.infer<typeof exportedApiSchema>;
 export type ExportKind = "scenario" | "api" | "workspace";

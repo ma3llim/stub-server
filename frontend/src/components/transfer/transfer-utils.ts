@@ -1,7 +1,7 @@
 import { isAxiosError } from "axios";
 
 import type { HttpMethod } from "../../api/mock-api.api";
-import { EXPORT_FORMAT, EXPORT_VERSION, type ExportedApi, type ExportFile, type ExportKind, type WorkspaceExportFile } from "../../api/transfer.api";
+import { EXPORT_FORMAT, EXPORT_VERSION, type ExportedApi, type ExportFile, type WorkspaceExportFile } from "../../api/transfer.api";
 
 export interface PickerScenario {
     key: string;
@@ -97,12 +97,6 @@ export const secondaryButtonClass =
 export const primaryButtonClass =
     "inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50";
 
-export const KIND_LABELS: Record<ExportKind, string> = {
-    scenario: "a single scenario",
-    api: "a single API",
-    workspace: "a full workspace export",
-};
-
 export interface TransferErrorInfo {
     message: string;
     issues: string[];
@@ -168,21 +162,6 @@ export async function readExportFile(file: File): Promise<ExportFile> {
     }
 
     return parsed as ExportFile;
-}
-
-function slugify(value: string): string {
-    return (
-        value
-            .toLowerCase()
-            .replace(/\{([^}]*)\}/g, "$1")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-+|-+$/g, "")
-            .slice(0, 60) || "export"
-    );
-}
-
-export function exportFileName(...parts: string[]): string {
-    return `${slugify(parts.join(" "))}.mock-api.json`;
 }
 
 export function downloadJson(data: unknown, fileName: string): void {

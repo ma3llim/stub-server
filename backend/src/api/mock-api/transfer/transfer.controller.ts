@@ -1,15 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
-import { exportApi, exportScenario, exportSelectedApis, exportWorkspace, importApis, importScenario, TransferError } from "./transfer.service.js";
-import { exportSelectionRequestSchema, importApisRequestSchema, importScenarioRequestSchema } from "./transfer.validation.js";
-
-interface MockApiParams {
-    id: string;
-}
-
-interface ScenarioParams extends MockApiParams {
-    scenarioId: string;
-}
+import { exportSelectedApis, exportWorkspace, importApis, TransferError } from "./transfer.service.js";
+import { exportSelectionRequestSchema, importApisRequestSchema } from "./transfer.validation.js";
 
 function handleError(error: unknown, res: Response, next: NextFunction): void {
     if (error instanceof TransferError) {
@@ -47,38 +39,6 @@ export async function exportSelected(req: Request, res: Response, next: NextFunc
     }
 }
 
-export async function exportOne(req: Request<MockApiParams>, res: Response, next: NextFunction): Promise<void> {
-    try {
-        const data = await exportApi(req.user!.userId, req.params.id);
-
-        if (!data) {
-            res.status(404).json({ success: false, message: "Mock API not found" });
-
-            return;
-        }
-
-        res.status(200).json({ success: true, data });
-    } catch (error) {
-        next(error);
-    }
-}
-
-export async function exportOneScenario(req: Request<ScenarioParams>, res: Response, next: NextFunction): Promise<void> {
-    try {
-        const data = await exportScenario(req.user!.userId, req.params.id, req.params.scenarioId);
-
-        if (!data) {
-            res.status(404).json({ success: false, message: "Scenario not found" });
-
-            return;
-        }
-
-        res.status(200).json({ success: true, data });
-    } catch (error) {
-        next(error);
-    }
-}
-
 export async function importMany(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
         const { file, conflictStrategy, dryRun } = importApisRequestSchema.parse(req.body);
@@ -95,24 +55,3 @@ export async function importMany(req: Request, res: Response, next: NextFunction
     }
 }
 
-export async function importOneScenario(req: Request<MockApiParams>, res: Response, next: NextFunction): Promise<void> {
-    try {
-        const { file } = importScenarioRequestSchema.parse(req.body);
-
-        const data = await importScenario(req.user!.userId, req.params.id, file);
-
-        if (!data) {
-            res.status(404).json({ success: false, message: "Mock API not found" });
-
-            return;
-        }
-
-        res.status(201).json({
-            success: true,
-            message: "Scenario imported successfully",
-            data,
-        });
-    } catch (error) {
-        handleError(error, res, next);
-    }
-}

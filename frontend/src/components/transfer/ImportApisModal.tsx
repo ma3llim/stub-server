@@ -115,7 +115,7 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
             const parsed = await readExportFile(file);
 
             if (parsed.kind === "scenario") {
-                throw new Error("This file contains a single scenario. Open the API you want to add it to and use Import in its Scenarios section.");
+                throw new Error("This file contains a single scenario. Importing single scenarios is no longer supported; use a file from Export all.");
             }
 
             // The preview validates the whole file and flags APIs that already exist.
@@ -270,7 +270,7 @@ export default function ImportApisModal({ onImported, onClose }: ImportApisModal
     return (
         <TransferModal title="Import APIs" description={description} busy={checking} onClose={onClose}>
             <div className="space-y-4">
-                <FileDropZone hint="Use a file from Export API or Export all" loading={checking} onFile={(file) => void handleFile(file)} />
+                <FileDropZone hint="Use a file from Export all" loading={checking} onFile={(file) => void handleFile(file)} />
                 {error && <TransferErrorAlert error={error} />}
             </div>
         </TransferModal>

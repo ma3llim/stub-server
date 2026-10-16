@@ -3,12 +3,11 @@ import { ZodError, type ZodType } from "zod";
 
 import { MockApi, type MockApiDocument, type MockScenario } from "../../../models/mock-api.model.js";
 import { normalizePath } from "../../../stub/utils/path-matcher.js";
-import { getMockApiById, getMockApis } from "../mock-api.service.js";
+import { getMockApis } from "../mock-api.service.js";
 
 import {
     EXPORT_FORMAT,
     EXPORT_VERSION,
-    MAX_SCENARIOS_PER_API,
     apiExportFileSchema,
     scenarioExportFileSchema,
     workspaceExportFileSchema,
@@ -32,12 +31,6 @@ export class TransferError extends Error {
         super(message);
     }
 }
-
-const KIND_LABELS: Record<ExportKind, string> = {
-    scenario: "a single scenario",
-    api: "a single API",
-    workspace: "a full workspace export",
-};
 
 const MAX_REPORTED_ISSUES = 10;
 
@@ -142,27 +135,6 @@ function toExportedApi(mockApi: MockApiDocument): ExportedApi {
     };
 }
 
-export async function exportScenario(userId: string, mockApiId: string, scenarioId: string) {
-    const mockApi = await getMockApiById(userId, mockApiId);
-    const scenario = mockApi?.scenarios.find((item) => item._id.toString() === scenarioId);
-
-    if (!scenario) {
-        return null;
-    }
-
-    return { ...envelope("scenario"), scenario: toExportedScenario(scenario) };
-}
-
-export async function exportApi(userId: string, mockApiId: string) {
-    const mockApi = await getMockApiById(userId, mockApiId);
-
-    if (!mockApi) {
-        return null;
-    }
-
-    return { ...envelope("api"), api: toExportedApi(mockApi) };
-}
-
 export async function exportWorkspace(userId: string) {
     const mockApis = await getMockApis(userId);
 
@@ -224,67 +196,6 @@ export async function exportSelectedApis(userId: string, selection: ExportSelect
     return { ...envelope("workspace"), apis };
 }
 
-function uniqueScenarioName(name: string, existingNames: string[]): string {
-    const taken = new Set(existingNames.map((item) => item.toLowerCase()));
-
-    if (!taken.has(name.toLowerCase())) {
-        return name;
-    }
-
-    for (let copy = 2; ; copy++) {
-        const suffix = ` (${copy})`;
-        const candidate = `${name.slice(0, 100 - suffix.length)}${suffix}`;
-
-        if (!taken.has(candidate.toLowerCase())) {
-            return candidate;
-        }
-    }
-}
-
-export async function importScenario(userId: string, mockApiId: string, rawFile: unknown) {
-    const file = parseExportFile(rawFile);
-
-    if (file.kind !== "scenario") {
-        throw new TransferError(`This file contains ${KIND_LABELS[file.kind]}, not a scenario. Import it from the dashboard using "Import" instead.`);
-    }
-
-    const mockApi = await getMockApiById(userId, mockApiId);
-
-    if (!mockApi) {
-        return null;
-    }
-
-    if (mockApi.scenarios.length >= MAX_SCENARIOS_PER_API) {
-        throw new TransferError(`This API already has the maximum of ${MAX_SCENARIOS_PER_API} scenarios.`, 409);
-    }
-
-    const name = uniqueScenarioName(
-        file.scenario.name,
-        mockApi.scenarios.map((scenario) => scenario.name),
-    );
-
-    const scenario = {
-        _id: new mongoose.Types.ObjectId(),
-        ...file.scenario,
-        name,
-    } as MockScenario;
-
-    mockApi.scenarios.push(scenario);
-
-    // Same rule as creating a scenario: the first one becomes active.
-    if (!mockApi.activeScenarioId) {
-        mockApi.activeScenarioId = scenario._id;
-    }
-
-    await mockApi.save();
-
-    return {
-        scenario,
-        renamedFrom: name !== file.scenario.name ? file.scenario.name : undefined,
-        activated: mockApi.activeScenarioId.equals(scenario._id),
-    };
-}
-
 function buildScenarios(api: ExportedApi) {
     const scenarios = api.scenarios.map((scenario) => ({ _id: new mongoose.Types.ObjectId(), ...scenario }) as MockScenario);
     const active = scenarios[api.activeScenarioIndex ?? 0];
@@ -308,7 +219,7 @@ export async function importApis(userId: string, rawFile: unknown, conflictStrat
     const file = parseExportFile(rawFile);
 
     if (file.kind === "scenario") {
-        throw new TransferError("This file contains a single scenario. Open the API you want to add it to and use Import in its Scenarios section.");
+        throw new TransferError("This file contains a single scenario. Importing single scenarios is no longer supported; use a file from Export all.");
     }
 
     const apis = file.kind === "api" ? [file.api] : file.apis;

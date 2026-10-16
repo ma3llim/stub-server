@@ -1,6 +1,5 @@
 import api from "./axios";
 import type { HttpMethod } from "./mock-api.api";
-import type { MockScenario } from "./scenario.api";
 
 export const EXPORT_FORMAT = "mock-api-platform/export";
 export const EXPORT_VERSION = 1;
@@ -61,12 +60,6 @@ export interface ImportResult {
     summary: { created: number; replaced: number; skipped: number; scenarios: number };
 }
 
-export interface ScenarioImportResult {
-    scenario: MockScenario;
-    renamedFrom?: string;
-    activated: boolean;
-}
-
 interface DataResponse<T> {
     success: boolean;
     message?: string;
@@ -92,18 +85,6 @@ export async function exportSelectedApis(apis: ExportSelectionItem[]): Promise<W
     return response.data.data;
 }
 
-export async function exportApi(mockApiId: string): Promise<ApiExportFile> {
-    const response = await api.get<DataResponse<ApiExportFile>>(`/mock-apis/${mockApiId}/export`);
-
-    return response.data.data;
-}
-
-export async function exportScenario(mockApiId: string, scenarioId: string): Promise<ScenarioExportFile> {
-    const response = await api.get<DataResponse<ScenarioExportFile>>(`/mock-apis/${mockApiId}/scenarios/${scenarioId}/export`);
-
-    return response.data.data;
-}
-
 export async function previewApiImport(file: unknown): Promise<ImportPreview> {
     const response = await api.post<DataResponse<ImportPreview>>("/mock-apis/import", { file, dryRun: true });
 
@@ -116,8 +97,3 @@ export async function importApis(file: unknown, conflictStrategy: ConflictStrate
     return response.data.data;
 }
 
-export async function importScenario(mockApiId: string, file: unknown): Promise<ScenarioImportResult> {
-    const response = await api.post<DataResponse<ScenarioImportResult>>(`/mock-apis/${mockApiId}/scenarios/import`, { file });
-
-    return response.data.data;
-}

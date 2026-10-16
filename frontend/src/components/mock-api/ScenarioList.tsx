@@ -1,23 +1,39 @@
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { activateScenario, getScenarios, type MockScenario } from "../../api/scenario.api";
+import { activateScenario, createScenario, getScenarios, type MockScenario } from "../../api/scenario.api";
 import ScenarioModal from "./ScenarioModal";
 import DeleteScenarioDialog from "./DeleteScenarioDialog";
-import { ChevronDown, ChevronUp, Download, GripVertical, Loader2, Upload } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, GripVertical, Loader2 } from "lucide-react";
 import JsonCodeEditor from "./JsonCodeEditor";
-import ImportScenarioModal from "../transfer/ImportScenarioModal";
-import { exportScenario } from "../../api/transfer.api";
-import { downloadJson, exportFileName, toTransferError } from "../transfer/transfer-utils";
+import { toTransferError } from "../transfer/transfer-utils";
 
 interface ScenarioListProps {
     mockApiId: string;
-    mockApiLabel: string;
     activeScenarioId?: string;
     onActiveScenarioChange?: (scenarioId: string) => void;
     refreshTrigger?: number;
 }
 
 type SortOption = "created" | "status";
+
+// Scenario names are limited to 100 characters by the API.
+const MAX_NAME_LENGTH = 100;
+
+// "Login" -> "Login (copy)", then "Login (copy 2)", ... skipping names already in use.
+// Cloning a copy reuses the original name, so "Login (copy)" -> "Login (copy 2)", not "Login (copy) (copy)".
+function cloneName(name: string, existingNames: string[]): string {
+    const taken = new Set(existingNames.map((item) => item.toLowerCase()));
+    const baseName = name.replace(/ \(copy(?: \d+)?\)$/i, "") || name;
+
+    for (let copy = 1; ; copy++) {
+        const suffix = copy === 1 ? " (copy)" : ` (copy ${copy})`;
+        const candidate = `${baseName.slice(0, MAX_NAME_LENGTH - suffix.length)}${suffix}`;
+
+        if (!taken.has(candidate.toLowerCase())) {
+            return candidate;
+        }
+    }
+}
 
 const getStatusCodeStyle = (statusCode: number) => {
     if (statusCode >= 200 && statusCode < 300) {
@@ -39,9 +55,8 @@ const getStatusCodeStyle = (statusCode: number) => {
     return "bg-surface-hover text-text-secondary border-border";
 };
 
-export default function ScenarioList({ mockApiId, mockApiLabel, activeScenarioId, onActiveScenarioChange, refreshTrigger = 0 }: ScenarioListProps) {
-    const [showImportModal, setShowImportModal] = useState(false);
-    const [exportingScenarioId, setExportingScenarioId] = useState<string | null>(null);
+export default function ScenarioList({ mockApiId, activeScenarioId, onActiveScenarioChange, refreshTrigger = 0 }: ScenarioListProps) {
+    const [cloningScenarioId, setCloningScenarioId] = useState<string | null>(null);
     const [scenarios, setScenarios] = useState<MockScenario[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -97,26 +112,32 @@ export default function ScenarioList({ mockApiId, mockApiLabel, activeScenarioId
         setEditingScenario(null);
     }
 
-    async function handleExport(scenario: MockScenario) {
-        setExportingScenarioId(scenario._id);
+    async function handleClone(scenario: MockScenario) {
+        setCloningScenarioId(scenario._id);
         setError("");
 
         try {
-            const file = await exportScenario(mockApiId, scenario._id);
+            const clone = await createScenario(mockApiId, {
+                name: cloneName(
+                    scenario.name,
+                    scenarios.map((item) => item.name),
+                ),
+                statusCode: scenario.statusCode,
+                headers: scenario.headers,
+                responseBody: scenario.responseBody,
+                delayMs: scenario.delayMs,
+            });
 
-            downloadJson(file, exportFileName("scenario", String(scenario.statusCode), scenario.name));
-        } catch (exportError) {
-            setError(toTransferError(exportError, "Failed to export the scenario.").message);
+            setScenarios((current) => [...current, clone]);
+
+            // The API activates a new scenario when none is active; keep the UI in step.
+            if (!activeScenarioId) {
+                onActiveScenarioChange?.(clone._id);
+            }
+        } catch (cloneError) {
+            setError(toTransferError(cloneError, "Failed to clone the scenario.").message);
         } finally {
-            setExportingScenarioId(null);
-        }
-    }
-
-    function handleScenarioImported(scenario: MockScenario, activated: boolean) {
-        setScenarios((current) => [...current, scenario]);
-
-        if (activated) {
-            onActiveScenarioChange?.(scenario._id);
+            setCloningScenarioId(null);
         }
     }
 
@@ -191,16 +212,6 @@ export default function ScenarioList({ mockApiId, mockApiLabel, activeScenarioId
 
                             <ChevronDown size={14} strokeWidth={1.8} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={() => setShowImportModal(true)}
-                            title="Import a scenario someone shared with you"
-                            className="flex items-center gap-1.5 rounded-lg border border-border-strong px-3.5 py-2 text-xs font-medium text-text-secondary transition hover:bg-surface-hover hover:text-text-primary"
-                        >
-                            <Upload className="h-3.5 w-3.5" />
-                            Import
-                        </button>
 
                         <button
                             type="button"
@@ -292,14 +303,14 @@ export default function ScenarioList({ mockApiId, mockApiLabel, activeScenarioId
 
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => void handleExport(scenario)}
-                                                                    disabled={exportingScenarioId === scenario._id}
-                                                                    title="Download this scenario as a file you can share"
-                                                                    aria-label={`Export ${scenario.name}`}
+                                                                    onClick={() => void handleClone(scenario)}
+                                                                    disabled={cloningScenarioId !== null}
+                                                                    title="Create a copy of this scenario"
+                                                                    aria-label={`Clone ${scenario.name}`}
                                                                     className="flex items-center gap-1 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary shadow-sm transition hover:bg-surface-hover hover:text-text-primary disabled:cursor-progress disabled:opacity-60"
                                                                 >
-                                                                    {exportingScenarioId === scenario._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                                                                    Export
+                                                                    {cloningScenarioId === scenario._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Copy className="h-3.5 w-3.5" />}
+                                                                    Clone
                                                                 </button>
 
                                                                 <button
@@ -376,10 +387,6 @@ export default function ScenarioList({ mockApiId, mockApiLabel, activeScenarioId
                         setEditingScenario(null);
                     }}
                 />
-            )}
-
-            {showImportModal && (
-                <ImportScenarioModal mockApiId={mockApiId} mockApiLabel={mockApiLabel} onImported={handleScenarioImported} onClose={() => setShowImportModal(false)} />
             )}
 
             {deletingScenario && (
