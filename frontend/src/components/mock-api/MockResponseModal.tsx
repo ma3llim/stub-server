@@ -110,7 +110,7 @@ export default function MockResponseModal({ mockApi, type, onClose, onResponseCh
                     <div className="flex items-center gap-3">
                         <Braces className="h-5 w-5 text-indigo-400" />
                         <div>
-                            <h2 className="font-semibold text-white">{type === "success" ? "Success Mock" : "Error Mock"}</h2>
+                            <h2 className="font-semibold text-text-primary">{type === "success" ? "Success Mock" : "Error Mock"}</h2>
                             <p className="mt-1 text-sm text-gray-400">JSON response body for {mockApi.method} {mockApi.path}</p>
                         </div>
                     </div>

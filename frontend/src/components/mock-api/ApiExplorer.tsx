@@ -17,7 +17,7 @@ export default function ApiExplorer({ mockApis, onEdit, onDelete }: ApiExplorerP
                     <Server className="h-6 w-6 text-gray-400" />
                 </div>
 
-                <h3 className="mt-4 text-lg font-semibold text-white">No APIs yet</h3>
+                <h3 className="mt-4 text-lg font-semibold text-text-primary">No APIs yet</h3>
 
                 <p className="mx-auto mt-2 max-w-md text-sm text-gray-400">Create your first mock API to start building your API collection.</p>
             </div>

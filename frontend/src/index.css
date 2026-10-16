@@ -22,6 +22,54 @@
     --color-info: #3b82f6;
 }
 
+/*
+ * Light theme. Components are written dark-first, so light mode redefines the
+ * semantic tokens and flips the gray scale (and the accent shades used for
+ * text and tinted backgrounds) instead of adding light: variants everywhere.
+ */
+html.light {
+    --color-background: #f5f6f8;
+    --color-surface: #ffffff;
+    --color-surface-hover: #eef0f3;
+    --color-border: #dde1e7;
+    --color-text-primary: #111827;
+    --color-text-secondary: #4b5563;
+    --color-text-muted: #6b7280;
+
+    --color-gray-50: oklch(13% 0.028 261.692);
+    --color-gray-100: oklch(21% 0.034 264.665);
+    --color-gray-200: oklch(27.8% 0.033 256.848);
+    --color-gray-300: oklch(37.3% 0.034 259.733);
+    --color-gray-400: oklch(44.6% 0.03 256.802);
+    --color-gray-600: oklch(70.7% 0.022 261.325);
+    --color-gray-700: oklch(87.2% 0.01 258.338);
+    --color-gray-800: oklch(92.8% 0.006 264.531);
+    --color-gray-900: #ffffff;
+    --color-gray-950: oklch(96.7% 0.003 264.542);
+
+    --color-red-300: oklch(50.5% 0.213 27.518);
+    --color-red-400: oklch(57.7% 0.245 27.325);
+    --color-red-800: oklch(88.5% 0.062 18.334);
+    --color-red-900: oklch(88.5% 0.062 18.334);
+    --color-red-950: oklch(97.1% 0.013 17.38);
+
+    --color-green-400: oklch(52.7% 0.154 150.069);
+    --color-green-900: oklch(92.5% 0.084 155.995);
+    --color-green-950: oklch(98.2% 0.018 155.826);
+
+    --color-indigo-300: oklch(45.7% 0.24 277.023);
+    --color-indigo-400: oklch(51.1% 0.262 276.966);
+    --color-indigo-800: oklch(87% 0.065 274.039);
+    --color-indigo-950: oklch(96.2% 0.018 272.314);
+
+    --color-amber-400: oklch(55.5% 0.163 48.998);
+    --color-yellow-400: oklch(55.4% 0.135 66.442);
+}
+
+html.light {
+    color-scheme: light;
+}
+
 html {
     min-width: 320px;
     min-height: 100%;
@@ -126,20 +174,20 @@ a {
 
 .json-code-editor .cm-editor {
     height: 100%;
-    background: #030712;
+    background: var(--color-gray-950);
     font-size: 0.875rem;
 }
 
 .json-code-editor .cm-scroller {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     line-height: 1.5rem;
-    scrollbar-color: #3a4250 #0b0d12;
+    scrollbar-color: var(--color-border) var(--color-gray-950);
     scrollbar-width: auto;
 }
 
 .json-code-editor .cm-content {
     padding: 0.625rem 0.75rem;
-    caret-color: #ffffff;
+    caret-color: var(--color-text-primary);
 }
 
 .json-code-editor .cm-gutters {
@@ -156,11 +204,11 @@ a {
 }
 
 .json-code-editor .cm-scroller::-webkit-scrollbar-track {
-    background: #0b0d12;
+    background: var(--color-gray-950);
 }
 
 .json-code-editor .cm-scroller::-webkit-scrollbar-thumb {
-    background: #3a4250;
+    background: var(--color-border);
     border-radius: 999px;
 }
 

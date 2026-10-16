@@ -30,7 +30,6 @@ const methodStylesText: Record<HttpMethod, string> = {
 
 export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointProps) {
     const [expanded, setExpanded] = useState(false);
-    const [scenariosExpanded, setScenariosExpanded] = useState(true);
     const [chatOpen, setChatOpen] = useState(false);
     const [mockResponseType, setMockResponseType] = useState<MockResponseType | null>(null);
     const [scenarioRefreshTrigger, setScenarioRefreshTrigger] = useState(0);
@@ -68,17 +67,17 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
     return (
         <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900">
             <button type="button" onClick={() => setExpanded((value) => !value)} className="flex w-full items-center gap-4 px-5 py-4 text-left hover:bg-gray-800">
-                <span className={`min-w-19 rounded border px-2.5 py-1 text-center font-mono text-xs font-bold ${methodStyles[mockApi.method]}`}>{mockApi.method}</span>
-                <span className="font-mono text-sm text-gray-200">{mockApi.path}</span>
-                <span className="ml-auto hidden text-sm text-gray-400 md:block">{mockApi.name}</span>
-                <span className="ml-2 text-gray-500">{expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</span>
+                <span className={`min-w-19 flex-none rounded border px-2.5 py-1 text-center font-mono text-xs font-bold ${methodStyles[mockApi.method]}`}>{mockApi.method}</span>
+                <span className="flex-none text-sm font-medium text-gray-200">{mockApi.name}</span>
+                <span className="min-w-0 truncate font-mono text-sm text-gray-400">{mockApi.path}</span>
+                <span className="ml-auto flex-none text-gray-500">{expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</span>
             </button>
 
             {expanded && (
                 <div className="border-t border-gray-800 bg-gray-900">
                     <div className="space-y-4 p-6">
                         <div>
-                            <h3 className="text-base font-semibold text-white">{mockApi.name}</h3>
+                            <h3 className="text-base font-semibold text-text-primary">{mockApi.name}</h3>
                             {mockApi.description && <p className="mt-2 text-sm leading-6 text-gray-400">{mockApi.description}</p>}
                         </div>
                         <div className="flex flex-wrap gap-3">
@@ -118,7 +117,7 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                             </button>
                         </div>
                         <section>
-                            <h4 className="mb-3 text-sm font-semibold text-white">Endpoint</h4>
+                            <h4 className="mb-3 text-sm font-semibold text-text-primary">Endpoint</h4>
                             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div className="relative rounded-lg bg-gray-950 px-4 py-3 pr-12 font-mono text-sm text-gray-200">
                                     <span className={`mr-3 ${methodStylesText[mockApi.method]}`}>{mockApi.method}</span>
@@ -140,26 +139,8 @@ export default function ApiEndpoint({ mockApi, onEdit, onDelete }: ApiEndpointPr
                             </div>
                         </section>
 
-                        <section className="overflow-hidden rounded-lg border border-gray-800">
-                            <button
-                                type="button"
-                                onClick={() => setScenariosExpanded((value) => !value)}
-                                className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-gray-800"
-                            >
-                                <div>
-                                    <h4 className="text-sm font-semibold text-white">Response Scenarios</h4>
-
-                                    <p className="mt-1 text-xs text-gray-500">Configure different responses for this endpoint</p>
-                                </div>
-
-                                {scenariosExpanded ? <ChevronUp className="h-4 w-4 text-gray-500" /> : <ChevronDown className="h-4 w-4 text-gray-500" />}
-                            </button>
-
-                            {scenariosExpanded && (
-                                <div className="border-t border-gray-800 p-4">
-                                    <ScenarioList mockApiId={mockApi._id} activeScenarioId={activeScenarioId} onActiveScenarioChange={handleScenarioChanged} refreshTrigger={scenarioRefreshTrigger} />
-                                </div>
-                            )}
+                        <section className="rounded-lg border border-gray-800 p-4">
+                            <ScenarioList mockApiId={mockApi._id} activeScenarioId={activeScenarioId} onActiveScenarioChange={handleScenarioChanged} refreshTrigger={scenarioRefreshTrigger} />
                         </section>
                     </div>
                 </div>

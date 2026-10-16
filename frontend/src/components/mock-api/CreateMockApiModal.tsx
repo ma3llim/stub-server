@@ -71,7 +71,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
             <div className="w-full max-w-xl rounded-xl border border-gray-800 bg-gray-900 shadow-2xl">
                 <div className="flex items-center justify-between border-b border-gray-800 px-6 py-4">
                     <div>
-                        <h2 className="text-lg font-semibold text-white">{isEditMode ? "Edit API" : "Create Mock API"}</h2>
+                        <h2 className="text-lg font-semibold text-text-primary">{isEditMode ? "Edit API" : "Create Mock API"}</h2>
 
                         <p className="mt-1 text-xs text-gray-400">Define the endpoint for your mock server.</p>
                     </div>
@@ -90,7 +90,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
                             onChange={(event) => setName(event.target.value)}
                             placeholder="Get Users"
                             required
-                            className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 text-sm text-white placeholder:text-gray-600 outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20"
+                            className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 text-sm text-text-primary placeholder:text-gray-600 outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20"
                         />
                     </div>
 
@@ -115,7 +115,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
                                 onChange={(event) => setPath(event.target.value)}
                                 placeholder="/api/users"
                                 required
-                                className="min-w-0 flex-1 rounded-r-lg border border-gray-700 bg-gray-950 px-3 py-2.5 font-mono text-sm text-white placeholder:text-gray-600 outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20"
+                                className="min-w-0 flex-1 rounded-r-lg border border-gray-700 bg-gray-950 px-3 py-2.5 font-mono text-sm text-text-primary placeholder:text-gray-600 outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20"
                             />
                         </div>
                     </div>
@@ -128,7 +128,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
                             onChange={(event) => setDescription(event.target.value)}
                             placeholder="Returns a list of users."
                             rows={3}
-                            className="w-full resize-none rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 text-sm text-white placeholder:text-gray-600 outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20"
+                            className="w-full resize-none rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 text-sm text-text-primary placeholder:text-gray-600 outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20"
                         />
                     </div>
 
@@ -142,7 +142,7 @@ export default function CreateMockApiModal({ mockApi, onSuccess, onClose }: Crea
                         <button
                             type="submit"
                             disabled={loading}
-                            className="rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-lg bg-gray-50 px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {loading ? "Saving..." : isEditMode ? "Save Changes" : "Create API"}
                         </button>

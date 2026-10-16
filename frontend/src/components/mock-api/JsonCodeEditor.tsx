@@ -4,6 +4,11 @@ import { json } from "@codemirror/lang-json";
 import { bracketMatching, indentOnInput, indentUnit } from "@codemirror/language";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { Compartment } from "@codemirror/state";
+import { useTheme, type Theme } from "../../theme/ThemeContext";
+
+function editorTheme(theme: Theme) {
+    return theme === "dark" ? oneDark : [];
+}
 
 interface JsonCodeEditorProps {
     id?: string;
@@ -29,6 +34,9 @@ export default function JsonCodeEditor({
     const hostRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
     const editableCompartmentRef = useRef(new Compartment());
+    const themeCompartmentRef = useRef(new Compartment());
+    const { theme } = useTheme();
+    const themeRef = useRef(theme);
     const valueRef = useRef(value);
     const onChangeRef = useRef(onChange);
     const readOnlyRef = useRef(readOnly);
@@ -51,7 +59,7 @@ export default function JsonCodeEditor({
             extensions: [
                 minimalSetup,
                 json(),
-                oneDark,
+                themeCompartmentRef.current.of(editorTheme(themeRef.current)),
                 bracketMatching(),
                 indentOnInput(),
                 indentUnit.of("  "),
@@ -96,6 +104,13 @@ export default function JsonCodeEditor({
             });
         }
     }, [readOnly]);
+
+    useEffect(() => {
+        themeRef.current = theme;
+        viewRef.current?.dispatch({
+            effects: themeCompartmentRef.current.reconfigure(editorTheme(theme)),
+        });
+    }, [theme]);
 
     function formatJson() {
         try {

@@ -1,7 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-
-import { useAuth } from "../auth/AuthContext";
 
 import { getMockApis, type MockApi } from "../api/mock-api.api";
 
@@ -11,10 +8,6 @@ import DeleteMockApiDialog from "../components/mock-api/DeleteMockApiDialog";
 import { Plus } from "lucide-react";
 
 export default function Dashboard() {
-    const navigate = useNavigate();
-
-    const { user, logout } = useAuth();
-
     const [mockApis, setMockApis] = useState<MockApi[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -71,43 +64,19 @@ export default function Dashboard() {
         void loadMockApis();
     }
 
-    async function handleLogout(): Promise<void> {
-        await logout();
-
-        navigate("/login", {
-            replace: true,
-        });
-    }
-
     return (
-        <div className="min-h-screen bg-gray-950">
-            <header className="border-b border-gray-800 bg-gray-900">
-                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-                    <div className="flex items-center gap-8">
-                        <h1 className="text-lg font-bold text-white">Mock API</h1>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <span className="hidden text-sm text-gray-400 sm:block">{user?.username}</span>
-
-                        <button type="button" onClick={handleLogout} className="rounded-lg border border-gray-700 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800">
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            </header>
-
+        <>
             <main className="mx-auto w-full max-w-7xl px-6 py-8">
                 <div className="mb-8 flex items-end justify-between">
                     <div>
                         <p className="text-sm font-medium text-indigo-400">Mock API Platform</p>
-                        <h2 className="mt-1 text-2xl font-bold text-white">API Explorer</h2>
+                        <h2 className="mt-1 text-2xl font-bold text-text-primary">API Explorer</h2>
                         <p className="mt-2 text-sm text-gray-400">Create, configure, and run mock APIs for development and testing.</p>
                     </div>
                     <button
                         type="button"
                         onClick={handleCreate}
-                        className="flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-gray-200"
+                        className="flex items-center gap-2 rounded-lg bg-gray-50 px-5 py-2.5 text-sm font-medium text-gray-900 shadow-sm transition hover:bg-gray-200"
                     >
                         <Plus className="h-4 w-4" />
                         Create API
@@ -120,7 +89,7 @@ export default function Dashboard() {
                             <div className="flex items-center gap-2">
                                 <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.7)]" />
 
-                                <h3 className="text-sm font-semibold text-white">Mock Server</h3>
+                                <h3 className="text-sm font-semibold text-text-primary">Mock Server</h3>
 
                                 <span className="rounded-full border border-green-900 bg-green-950/50 px-2 py-0.5 text-xs font-medium text-green-400">Running</span>
                             </div>
@@ -148,6 +117,6 @@ export default function Dashboard() {
             {showCreateModal && <CreateMockApiModal mockApi={editingApi} onSuccess={handleModalSuccess} onClose={handleModalClose} />}
 
             {deletingApi && <DeleteMockApiDialog mockApi={deletingApi} onSuccess={handleDeleteSuccess} onCancel={() => setDeletingApi(null)} />}
-        </div>
+        </>
     );
 }

@@ -30,7 +30,7 @@ export default function DeleteMockApiDialog({ mockApi, onSuccess, onCancel }: De
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
             <div className="w-full max-w-md rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl">
-                <h2 className="text-lg font-semibold text-white">Delete API</h2>
+                <h2 className="text-lg font-semibold text-text-primary">Delete API</h2>
 
                 <p className="mt-3 text-sm leading-6">
                     Are you sure you want to delete <strong className="font-semibold text-gray-200">{mockApi.name}</strong>?
