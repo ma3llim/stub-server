@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, ArrowUpRight, Braces, PlayCircle, Server, type LucideIcon } from "lucide-react";
 
-import { useAuth } from "../auth/AuthContext";
-
 interface HomeCard {
     to: string;
     title: string;
@@ -22,7 +20,7 @@ const cards: HomeCard[] = [
     {
         to: `${import.meta.env.VITE_API_BASE_URL}/mappings`,
         title: "Mappings",
-        description: "Open the mappings API: every user's APIs and scenarios, as JSON.",
+        description: "Open the mappings API: every API and scenario, as JSON.",
         icon: Braces,
         newTab: true,
     },
@@ -36,13 +34,11 @@ const cards: HomeCard[] = [
 ];
 
 export default function Home() {
-    const { user } = useAuth();
-
     return (
         <main className="mx-auto w-full max-w-7xl px-6 py-12">
             <div className="mb-10">
                 <p className="text-sm font-medium text-primary-text">Mock API Platform</p>
-                <h2 className="mt-1 text-3xl font-bold text-text-primary">Welcome{user?.username ? `, ${user.username}` : ""}</h2>
+                <h2 className="mt-1 text-3xl font-bold text-text-primary">Welcome</h2>
                 <p className="mt-2 text-sm text-text-secondary">Pick where you want to start.</p>
             </div>
 

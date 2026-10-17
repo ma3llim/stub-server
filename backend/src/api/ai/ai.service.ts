@@ -9,7 +9,6 @@ function isEmptyResponse(response: MockResponseData | undefined): boolean {
 }
 
 export async function chatWithScenarioAgent(
-    userId: string,
     mockApiId: string,
     message: string,
     successResponse?: MockResponseData,
@@ -175,7 +174,7 @@ export async function chatWithScenarioAgent(
 
                 args.mockApiId = mockApiId;
 
-                const result = await executeScenarioTool(userId, toolName, args);
+                const result = await executeScenarioTool(toolName, args);
 
                 messages.push({ role: "tool", tool_call_id: toolCall.id, content: JSON.stringify(result) });
             }
@@ -188,23 +187,23 @@ export async function chatWithScenarioAgent(
     throw new Error("Maximum AI tool execution limit reached");
 }
 
-async function executeScenarioTool(userId: string, toolName: string, args: any): Promise<unknown> {
+async function executeScenarioTool(toolName: string, args: any): Promise<unknown> {
     if (!args.mockApiId) {
         throw new Error("mockApiId is required");
     }
 
     switch (toolName) {
         case "get_scenarios":
-            return getScenarios(userId, args.mockApiId);
+            return getScenarios(args.mockApiId);
 
         case "get_scenario_by_id":
-            return getScenarioById(userId, args.mockApiId, args.scenarioId);
+            return getScenarioById(args.mockApiId, args.scenarioId);
 
         case "get_active_scenario":
-            return getActiveScenario(userId, args.mockApiId);
+            return getActiveScenario(args.mockApiId);
 
         case "create_scenario":
-            return createScenario(userId, args.mockApiId, {
+            return createScenario(args.mockApiId, {
                 name: args.name,
                 statusCode: args.statusCode,
                 headers: args.headers ?? {},
@@ -213,7 +212,7 @@ async function executeScenarioTool(userId: string, toolName: string, args: any):
             });
 
         case "update_scenario":
-            return updateScenario(userId, args.mockApiId, args.scenarioId, {
+            return updateScenario(args.mockApiId, args.scenarioId, {
                 ...(args.name !== undefined && {
                     name: args.name,
                 }),
@@ -236,13 +235,13 @@ async function executeScenarioTool(userId: string, toolName: string, args: any):
             });
 
         case "delete_scenario":
-            return deleteScenario(userId, args.mockApiId, args.scenarioId);
+            return deleteScenario(args.mockApiId, args.scenarioId);
 
         case "activate_scenario":
-            return activateScenario(userId, args.mockApiId, args.scenarioId);
+            return activateScenario(args.mockApiId, args.scenarioId);
 
         case "test_scenario":
-            return testScenario(userId, args.mockApiId, args.scenarioId);
+            return testScenario(args.mockApiId, args.scenarioId);
 
         default:
             throw new Error(`Unknown scenario tool: ${toolName}`);
@@ -250,7 +249,6 @@ async function executeScenarioTool(userId: string, toolName: string, args: any):
 }
 
 async function testScenario(
-    userId: string,
     mockApiId: string,
     scenarioId: string,
 ): Promise<{
@@ -261,7 +259,7 @@ async function testScenario(
     responseBody: unknown;
     delayMs: number;
 }> {
-    const scenario = await getScenarioById(userId, mockApiId, scenarioId);
+    const scenario = await getScenarioById(mockApiId, scenarioId);
 
     if (!scenario) {
         throw new Error("Scenario not found");

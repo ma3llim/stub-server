@@ -1,6 +1,5 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
-import { useAuth } from "../../auth/AuthContext";
 import ThemeToggle from "../../theme/ThemeToggle";
 
 const navItems = [
@@ -13,18 +12,6 @@ const navLinkClass = "rounded-lg px-3 py-2 text-sm font-medium transition";
 const inactiveNavLinkClass = "text-text-secondary hover:bg-surface-hover hover:text-text-primary";
 
 export default function AppLayout() {
-    const navigate = useNavigate();
-
-    const { user, logout } = useAuth();
-
-    async function handleLogout(): Promise<void> {
-        await logout();
-
-        navigate("/login", {
-            replace: true,
-        });
-    }
-
     return (
         <div className="min-h-screen bg-background">
             <header className="border-b border-border bg-surface">
@@ -54,15 +41,7 @@ export default function AppLayout() {
                         </nav>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <span className="hidden text-sm text-text-secondary sm:block">{user?.username}</span>
-
-                        <ThemeToggle />
-
-                        <button type="button" onClick={handleLogout} className="rounded-lg border border-border-strong px-3 py-2 text-sm font-medium text-text-secondary hover:bg-surface-hover">
-                            Logout
-                        </button>
-                    </div>
+                    <ThemeToggle />
                 </div>
             </header>
 

@@ -20,9 +20,7 @@ export async function create(req: Request<Pick<ScenarioParams, "id">>, res: Resp
         });
     }
 
-    const userId = req.user!.userId;
-
-    const scenario = await createScenario(userId, req.params.id, result.data);
+    const scenario = await createScenario(req.params.id, result.data);
 
     if (!scenario) {
         return res.status(404).json({
@@ -39,9 +37,7 @@ export async function create(req: Request<Pick<ScenarioParams, "id">>, res: Resp
 }
 
 export async function getAll(req: Request<Pick<ScenarioParams, "id">>, res: Response) {
-    const userId = req.user!.userId;
-
-    const scenarios = await getScenarios(userId, req.params.id);
+    const scenarios = await getScenarios(req.params.id);
 
     if (!scenarios) {
         return res.status(404).json({
@@ -57,9 +53,7 @@ export async function getAll(req: Request<Pick<ScenarioParams, "id">>, res: Resp
 }
 
 export async function getById(req: Request<ScenarioParams>, res: Response) {
-    const userId = req.user!.userId;
-
-    const scenario = await getScenarioById(userId, req.params.id, req.params.scenarioId);
+    const scenario = await getScenarioById(req.params.id, req.params.scenarioId);
 
     if (!scenario) {
         return res.status(404).json({
@@ -85,9 +79,7 @@ export async function update(req: Request<ScenarioParams>, res: Response) {
         });
     }
 
-    const userId = req.user!.userId;
-
-    const scenario = await updateScenario(userId, req.params.id, req.params.scenarioId, result.data);
+    const scenario = await updateScenario(req.params.id, req.params.scenarioId, result.data);
 
     if (!scenario) {
         return res.status(404).json({
@@ -104,9 +96,7 @@ export async function update(req: Request<ScenarioParams>, res: Response) {
 }
 
 export async function remove(req: Request<ScenarioParams>, res: Response) {
-    const userId = req.user!.userId;
-
-    const deleted = await deleteScenario(userId, req.params.id, req.params.scenarioId);
+    const deleted = await deleteScenario(req.params.id, req.params.scenarioId);
 
     if (!deleted) {
         return res.status(404).json({
@@ -122,9 +112,7 @@ export async function remove(req: Request<ScenarioParams>, res: Response) {
 }
 
 export async function activate(req: Request<ScenarioParams>, res: Response) {
-    const userId = req.user!.userId;
-
-    const scenario = await activateScenario(userId, req.params.id, req.params.scenarioId);
+    const scenario = await activateScenario(req.params.id, req.params.scenarioId);
 
     if (!scenario) {
         return res.status(404).json({

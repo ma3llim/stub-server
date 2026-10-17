@@ -89,8 +89,6 @@ export default function Demo() {
             const response = await fetch(target, {
                 method,
                 signal: controller.signal,
-                // Sends the login cookie so the mock server answers with this user's own APIs.
-                credentials: "include",
             });
             const text = await response.text();
 

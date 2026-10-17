@@ -14,7 +14,7 @@ export interface MockScenario {
 }
 
 export interface MockApiDocument extends Document {
-    userId: mongoose.Types.ObjectId;
+
     name: string;
     method: HttpMethod;
     path: string;
@@ -69,13 +69,6 @@ const scenarioSchema = new Schema<MockScenario>(
 
 const mockApiSchema = new Schema<MockApiDocument>(
     {
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-            index: true,
-        },
-
         name: {
             type: String,
             required: true,
@@ -131,9 +124,8 @@ const mockApiSchema = new Schema<MockApiDocument>(
 );
 
 mockApiSchema.index({
-    userId: 1,
-    path: 1,
     method: 1,
+    path: 1,
 });
 
 export const MockApi: Model<MockApiDocument> = mongoose.model<MockApiDocument>("MockApi", mockApiSchema);

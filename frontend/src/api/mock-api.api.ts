@@ -14,7 +14,6 @@ export type MockResponseData = Record<string, unknown>;
 
 export interface MockApi {
     _id: string;
-    userId: string;
     name: string;
     method: HttpMethod;
     path: string;

@@ -13,8 +13,10 @@ A full-stack mock API platform that allows developers to create, configure, and 
 - Dedicated mock server
 - Dynamic path matching
 - Scenario drag-and-drop ordering
-- JWT-based authentication
-- Secure HttpOnly cookies
+- Import and export of APIs and scenarios, with selection
+- Scenario cloning and bulk delete
+- Mappings endpoint and a Demo request page
+- Light and dark themes
 - AI-powered Scenario Assistant
 - Natural-language scenario management
 - Scenario refresh after AI operations
@@ -57,6 +59,7 @@ The platform also includes an AI Scenario Assistant that allows users to manage 
 - Create, update, and delete Mock APIs
 - Support for GET, POST, PUT, PATCH, and DELETE
 - API path and description configuration
+- Optional example request body (JSON) per API
 - Complete mock endpoint URL
 - Copy mock endpoint URL
 
@@ -68,13 +71,13 @@ The platform also includes an AI Scenario Assistant that allows users to manage 
 - Custom response bodies
 - Configurable response delay
 - Activate a specific scenario
-- Create, edit, and delete scenarios
+- Create, edit, clone, and delete scenarios
 
 ### Success and Error Responses
 
 Each Mock API can also store one success JSON object and one error JSON object independently of its scenarios. These values are stored directly in the `successResponse` and `errorResponse` fields.
 
-The authenticated management API supports create, read, and update operations at:
+The management API supports create, read, and update operations at:
 
 ```text
 POST   /mock-apis/:id/responses/success
@@ -113,6 +116,8 @@ Creating a response that already exists returns `409 Conflict`; updating a respo
 - Configurable response headers
 - Configurable response body
 - Configurable response delay
+- Responses are never cached, so changing the active scenario takes effect immediately
+- When two APIs match a request, the most specific path wins (`/products/featured` before `/products/{id}`), then the most recently changed API
 
 ### AI Scenario Assistant
 
@@ -126,15 +131,24 @@ Creating a response that already exists returns `409 Conflict`; updating a respo
 - Tool-based AI operations
 - Automatic UI refresh after successful AI operations
 
-### Authentication
+### Import, Export, and Bulk Actions
 
-- User registration
-- User login
-- JWT authentication
-- Refresh tokens
-- HttpOnly cookies
-- Password hashing
-- User ownership validation
+From the API Explorer:
+
+- **Export all** opens a picker: choose which APIs, which of their scenarios, and which scenario is active in the file
+- **Import** previews the file, shows which APIs already exist, and lets you pick APIs, scenarios, and the active scenario; existing APIs can be skipped or replaced
+- **Delete all** removes every API and scenario (export a backup first)
+
+Export files are versioned JSON with no database IDs, so they can be shared and imported anywhere.
+
+### Mappings and Demo
+
+- `GET /api/v1/mappings` returns every API and scenario as one JSON document (open it directly in the browser)
+- The **Demo** page sends a request to any mock URL and shows the status, timing, headers, and body
+
+### Workspace and Access
+
+There is no login: all APIs and scenarios live in one shared workspace, and the management API (port 8080) and mock server (port 8081) accept requests from anyone who can reach them. Run the platform on your own machine or a trusted network only.
 
 ## Technology Stack
 
@@ -148,6 +162,7 @@ Creating a response that already exists returns `409 Conflict`; updating a respo
 - Tailwind CSS
 - Lucide React
 - @hello-pangea/dnd
+- CodeMirror (JSON editor)
 
 ### Backend
 
@@ -156,8 +171,6 @@ Creating a response that already exists returns `409 Conflict`; updating a respo
 - TypeScript
 - MongoDB
 - Mongoose
-- JWT
-- bcryptjs
 - Zod
 
 ### AI
@@ -183,17 +196,14 @@ Creating a response that already exists returns `409 Conflict`; updating a respo
                     │      Port 8080      │
                     └───────┬─────┬───────┘
                             │     │
-                  ┌─────────┘     └─────────┐
-                  ▼                         ▼
-           ┌──────────────┐        ┌────────────────┐
-           │ Auth Module  │        │  AI Assistant  │
-           └──────┬───────┘        └───────┬────────┘
-                  │                        │
-                  │                        ▼
-                  │                Cloudflare AI
-                  │
-                  └──────────┬─────────────┘
-                             ▼
+                            │     └─────────┐
+                            │               ▼
+                            │      ┌────────────────┐
+                            │      │  AI Assistant  │
+                            │      └───────┬────────┘
+                            │              ▼
+                            │        Cloudflare AI
+                            ▼
                        ┌───────────┐
                        │  MongoDB  │
                        └─────┬─────┘
@@ -214,8 +224,8 @@ The application separates the management API from the mock runtime while keeping
 
 - Node.js
 - npm
-- MongoDB
-- Cloudflare Workers AI credentials
+- MongoDB (running locally or reachable via `MONGODB_URI`)
+- Cloudflare Workers AI credentials (for the AI Scenario Assistant)
 
 ### Clone Repository
 
@@ -261,6 +271,8 @@ Start the frontend:
 ```bash
 npm run dev
 ```
+
+To start the frontend, management API, and mock server together, run `npm install` and then `npm run dev` from the project root.
 
 The application will use:
 

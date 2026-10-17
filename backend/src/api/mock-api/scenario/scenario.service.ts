@@ -10,14 +10,13 @@ function findScenario(scenarios: MockScenario[], scenarioId: string): MockScenar
     return scenarios.find((scenario) => scenario._id.toString() === scenarioId);
 }
 
-export async function createScenario(userId: string, mockApiId: string, data: CreateScenarioInput): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
+export async function createScenario(mockApiId: string, data: CreateScenarioInput): Promise<MockScenario | null> {
+    if (!mongoose.isValidObjectId(mockApiId)) {
         return null;
     }
 
     const mockApi = await MockApi.findOne({
         _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
     });
 
     if (!mockApi) {
@@ -43,12 +42,12 @@ export async function createScenario(userId: string, mockApiId: string, data: Cr
     return scenario;
 }
 
-export async function getScenarios(userId: string, mockApiId: string): Promise<MockScenario[] | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
+export async function getScenarios(mockApiId: string): Promise<MockScenario[] | null> {
+    if (!mongoose.isValidObjectId(mockApiId)) {
         return null;
     }
 
-    const mockApi = await MockApi.findOne({ _id: toObjectId(mockApiId), userId: toObjectId(userId) });
+    const mockApi = await MockApi.findOne({ _id: toObjectId(mockApiId) });
 
     if (!mockApi) {
         return null;
@@ -57,14 +56,13 @@ export async function getScenarios(userId: string, mockApiId: string): Promise<M
     return mockApi.scenarios;
 }
 
-export async function getScenarioById(userId: string, mockApiId: string, scenarioId: string): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(scenarioId)) {
+export async function getScenarioById(mockApiId: string, scenarioId: string): Promise<MockScenario | null> {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(scenarioId)) {
         return null;
     }
 
     const mockApi = await MockApi.findOne({
         _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
     });
 
     if (!mockApi) {
@@ -74,12 +72,12 @@ export async function getScenarioById(userId: string, mockApiId: string, scenari
     return findScenario(mockApi.scenarios, scenarioId) ?? null;
 }
 
-export async function getActiveScenario(userId: string, mockApiId: string): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
+export async function getActiveScenario(mockApiId: string): Promise<MockScenario | null> {
+    if (!mongoose.isValidObjectId(mockApiId)) {
         return null;
     }
 
-    const mockApi = await MockApi.findOne({ _id: toObjectId(mockApiId), userId: toObjectId(userId) });
+    const mockApi = await MockApi.findOne({ _id: toObjectId(mockApiId) });
 
     if (!mockApi) {
         return null;
@@ -92,14 +90,13 @@ export async function getActiveScenario(userId: string, mockApiId: string): Prom
     return findScenario(mockApi.scenarios, mockApi.activeScenarioId.toString()) ?? null;
 }
 
-export async function updateScenario(userId: string, mockApiId: string, scenarioId: string, data: UpdateScenarioInput): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(scenarioId)) {
+export async function updateScenario(mockApiId: string, scenarioId: string, data: UpdateScenarioInput): Promise<MockScenario | null> {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(scenarioId)) {
         return null;
     }
 
     const mockApi = await MockApi.findOne({
         _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
     });
 
     if (!mockApi) {
@@ -119,14 +116,13 @@ export async function updateScenario(userId: string, mockApiId: string, scenario
     return scenario;
 }
 
-export async function deleteScenario(userId: string, mockApiId: string, scenarioId: string): Promise<boolean> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(scenarioId)) {
+export async function deleteScenario(mockApiId: string, scenarioId: string): Promise<boolean> {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(scenarioId)) {
         return false;
     }
 
     const mockApi = await MockApi.findOne({
         _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
     });
 
     if (!mockApi) {
@@ -159,14 +155,13 @@ export async function deleteScenario(userId: string, mockApiId: string, scenario
     return true;
 }
 
-export async function activateScenario(userId: string, mockApiId: string, scenarioId: string): Promise<MockScenario | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(scenarioId)) {
+export async function activateScenario(mockApiId: string, scenarioId: string): Promise<MockScenario | null> {
+    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(scenarioId)) {
         return null;
     }
 
     const mockApi = await MockApi.findOne({
         _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
     });
 
     if (!mockApi) {

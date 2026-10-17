@@ -19,7 +19,7 @@ function handleError(error: unknown, res: Response, next: NextFunction): void {
 
 export async function exportAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        const data = await exportWorkspace(req.user!.userId);
+        const data = await exportWorkspace();
 
         res.status(200).json({ success: true, data });
     } catch (error) {
@@ -31,7 +31,7 @@ export async function exportSelected(req: Request, res: Response, next: NextFunc
     try {
         const { apis } = exportSelectionRequestSchema.parse(req.body);
 
-        const data = await exportSelectedApis(req.user!.userId, apis);
+        const data = await exportSelectedApis(apis);
 
         res.status(200).json({ success: true, data });
     } catch (error) {
@@ -43,7 +43,7 @@ export async function importMany(req: Request, res: Response, next: NextFunction
     try {
         const { file, conflictStrategy, dryRun } = importApisRequestSchema.parse(req.body);
 
-        const data = await importApis(req.user!.userId, file, conflictStrategy, dryRun);
+        const data = await importApis(file, conflictStrategy, dryRun);
 
         res.status(dryRun ? 200 : 201).json({
             success: true,

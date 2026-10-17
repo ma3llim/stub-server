@@ -28,7 +28,7 @@ export async function create(req: Request<ResponseParams>, res: Response) {
         });
     }
 
-    const created = await createResponse(req.user!.userId, req.params.id, type.data, result.data);
+    const created = await createResponse(req.params.id, type.data, result.data);
 
     if (created.status === "not-found") {
         return res.status(404).json({ success: false, message: "Mock API not found" });
@@ -52,7 +52,7 @@ export async function get(req: Request<ResponseParams>, res: Response) {
         return res.status(404).json({ success: false, message: "Response type not found" });
     }
 
-    const response = await getResponse(req.user!.userId, req.params.id, type.data);
+    const response = await getResponse(req.params.id, type.data);
 
     if (!response) {
         return res.status(404).json({ success: false, message: `${type.data} response not found` });
@@ -78,7 +78,7 @@ export async function update(req: Request<ResponseParams>, res: Response) {
         });
     }
 
-    const response = await updateResponse(req.user!.userId, req.params.id, type.data, result.data);
+    const response = await updateResponse(req.params.id, type.data, result.data);
 
     if (!response) {
         return res.status(404).json({ success: false, message: `${type.data} response not found` });

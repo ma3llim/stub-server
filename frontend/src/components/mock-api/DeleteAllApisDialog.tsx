@@ -36,7 +36,7 @@ export default function DeleteAllApisDialog({ apiCount, scenarioCount, onDeleted
     return (
         <TransferModal
             title="Delete all APIs"
-            description="This removes every API in your account. Other users' APIs are not affected."
+            description="This removes every API and scenario in the workspace."
             busy={deleting}
             onClose={onClose}
             footer={

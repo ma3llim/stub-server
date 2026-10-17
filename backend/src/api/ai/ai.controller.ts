@@ -14,7 +14,6 @@ const chatSchema = z.object({
 export async function chat(req: Request, res: Response) {
     const input = chatSchema.parse(req.body);
     const result = await chatWithScenarioAgent(
-        req.user!.userId,
         input.mockApiId,
         input.message,
         input.mock.successResponse,

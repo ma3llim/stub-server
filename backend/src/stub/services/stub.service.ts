@@ -15,28 +15,21 @@ function paramCount(path: string): number {
 }
 
 /*
- * Several APIs can match one request: different users may own the same endpoint,
- * and a pattern like /products/{id} can overlap /products/featured. Pick in order:
- *   1. APIs owned by the requesting user (when the caller is signed in),
- *   2. the most specific path (fewest {params}),
- *   3. the most recently changed API, so the scenario someone just activated wins.
+ * Several APIs can match one request: the same endpoint may exist twice, and a
+ * pattern like /products/{id} can overlap /products/featured. Pick in order:
+ *   1. the most specific path (fewest {params}),
+ *   2. the most recently changed API, so the scenario someone just activated wins.
  */
-function pickMockApi(candidates: MockApiDocument[], requesterId: string | null): MockApiDocument | undefined {
-    const owned = requesterId ? candidates.filter((api) => api.userId.toString() === requesterId) : [];
-    const pool = owned.length > 0 ? owned : candidates;
-
-    return [...pool].sort((a, b) => paramCount(a.path) - paramCount(b.path) || b.updatedAt.getTime() - a.updatedAt.getTime())[0];
+function pickMockApi(candidates: MockApiDocument[]): MockApiDocument | undefined {
+    return [...candidates].sort((a, b) => paramCount(a.path) - paramCount(b.path) || b.updatedAt.getTime() - a.updatedAt.getTime())[0];
 }
 
-export async function findMockResponse(method: string, requestPath: string, requesterId: string | null = null): Promise<StubResponse | null> {
+export async function findMockResponse(method: string, requestPath: string): Promise<StubResponse | null> {
     const mockApis = await MockApi.find({
         method: method.toUpperCase(),
     });
 
-    const mockApi = pickMockApi(
-        mockApis.filter((api) => matchPath(api.path, requestPath)),
-        requesterId,
-    );
+    const mockApi = pickMockApi(mockApis.filter((api) => matchPath(api.path, requestPath)));
 
     if (!mockApi) {
         return null;

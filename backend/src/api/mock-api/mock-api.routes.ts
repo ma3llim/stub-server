@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { authenticate } from "../../middleware/auth.middleware.js";
 import { create, getAll, getById, update, remove, removeAll } from "./mock-api.controller.js";
 import scenarioRoutes from "./scenario/scenario.routes.js";
 import responseRoutes from "./response/response.routes.js";
@@ -7,7 +6,6 @@ import { exportAll, exportSelected, importMany } from "./transfer/transfer.contr
 
 const router = Router();
 
-router.use(authenticate);
 router.post("/", create);
 router.get("/", getAll);
 router.delete("/", removeAll);

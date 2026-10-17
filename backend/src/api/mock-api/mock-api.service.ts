@@ -8,11 +8,10 @@ function toObjectId(id: string): mongoose.Types.ObjectId {
     return new mongoose.Types.ObjectId(id);
 }
 
-export async function createMockApi(userId: string, data: CreateMockApiInput): Promise<MockApiDocument> {
+export async function createMockApi(data: CreateMockApiInput): Promise<MockApiDocument> {
     const { requestBody, ...rest } = data;
 
     const mockApi = await MockApi.create({
-        userId: toObjectId(userId),
         ...rest,
         ...(requestBody !== undefined && requestBody !== null && { requestBody }),
     });
@@ -20,26 +19,23 @@ export async function createMockApi(userId: string, data: CreateMockApiInput): P
     return mockApi;
 }
 
-export async function getMockApis(userId: string): Promise<MockApiDocument[]> {
-    return MockApi.find({
-        userId: toObjectId(userId),
-    }).sort({
+export async function getMockApis(): Promise<MockApiDocument[]> {
+    return MockApi.find().sort({
         createdAt: -1,
     });
 }
 
-export async function getMockApiById(userId: string, id: string): Promise<MockApiDocument | null> {
+export async function getMockApiById(id: string): Promise<MockApiDocument | null> {
     if (!mongoose.isValidObjectId(id)) {
         return null;
     }
 
     return MockApi.findOne({
         _id: toObjectId(id),
-        userId: toObjectId(userId),
     });
 }
 
-export async function updateMockApi(userId: string, id: string, data: UpdateMockApiInput): Promise<MockApiDocument | null> {
+export async function updateMockApi(id: string, data: UpdateMockApiInput): Promise<MockApiDocument | null> {
     if (!mongoose.isValidObjectId(id)) {
         return null;
     }
@@ -59,7 +55,6 @@ export async function updateMockApi(userId: string, id: string, data: UpdateMock
     return MockApi.findOneAndUpdate(
         {
             _id: toObjectId(id),
-            userId: toObjectId(userId),
         },
         {
             $set: updateData,
@@ -73,22 +68,19 @@ export async function updateMockApi(userId: string, id: string, data: UpdateMock
     );
 }
 
-export async function deleteAllMockApis(userId: string): Promise<number> {
-    const result = await MockApi.deleteMany({
-        userId: toObjectId(userId),
-    });
+export async function deleteAllMockApis(): Promise<number> {
+    const result = await MockApi.deleteMany({});
 
     return result.deletedCount;
 }
 
-export async function deleteMockApi(userId: string, id: string): Promise<boolean> {
+export async function deleteMockApi(id: string): Promise<boolean> {
     if (!mongoose.isValidObjectId(id)) {
         return false;
     }
 
     const result = await MockApi.deleteOne({
         _id: toObjectId(id),
-        userId: toObjectId(userId),
     });
 
     return result.deletedCount === 1;

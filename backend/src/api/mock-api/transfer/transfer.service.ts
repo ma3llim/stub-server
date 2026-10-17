@@ -34,10 +34,6 @@ export class TransferError extends Error {
 
 const MAX_REPORTED_ISSUES = 10;
 
-function toObjectId(id: string): mongoose.Types.ObjectId {
-    return new mongoose.Types.ObjectId(id);
-}
-
 function endpointKey(method: string, path: string): string {
     return `${method.toUpperCase()} ${normalizePath(path)}`;
 }
@@ -136,8 +132,8 @@ function toExportedApi(mockApi: MockApiDocument): ExportedApi {
     };
 }
 
-export async function exportWorkspace(userId: string) {
-    const mockApis = await getMockApis(userId);
+export async function exportWorkspace() {
+    const mockApis = await getMockApis();
 
     return { ...envelope("workspace"), apis: mockApis.map(toExportedApi) };
 }
@@ -154,8 +150,8 @@ export interface ExportSelection {
  * API's current one; if that was left out, the file has no active scenario and the
  * importer falls back to the first one.
  */
-export async function exportSelectedApis(userId: string, selection: ExportSelection[]) {
-    const byId = new Map((await getMockApis(userId)).map((mockApi) => [mockApi.id as string, mockApi]));
+export async function exportSelectedApis(selection: ExportSelection[]) {
+    const byId = new Map((await getMockApis()).map((mockApi) => [mockApi.id as string, mockApi]));
     const apis: ExportedApi[] = [];
     const seen = new Set<string>();
 
@@ -216,7 +212,7 @@ interface ImportItem {
     result?: ImportItemResult;
 }
 
-export async function importApis(userId: string, rawFile: unknown, conflictStrategy: ConflictStrategy, dryRun: boolean) {
+export async function importApis(rawFile: unknown, conflictStrategy: ConflictStrategy, dryRun: boolean) {
     const file = parseExportFile(rawFile);
 
     if (file.kind === "scenario") {
@@ -243,7 +239,7 @@ export async function importApis(userId: string, rawFile: unknown, conflictStrat
 
     const existing = new Map<string, MockApiDocument>();
 
-    for (const mockApi of await getMockApis(userId)) {
+    for (const mockApi of await getMockApis()) {
         const key = endpointKey(mockApi.method, mockApi.path);
 
         if (!existing.has(key)) {
@@ -282,7 +278,6 @@ export async function importApis(userId: string, rawFile: unknown, conflictStrat
     for (const [index, { api, match }] of plan.entries()) {
         if (!match) {
             toCreate.push({
-                userId: toObjectId(userId),
                 name: api.name,
                 method: api.method,
                 path: api.path,

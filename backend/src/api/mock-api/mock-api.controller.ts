@@ -12,7 +12,7 @@ export async function create(req: Request, res: Response, next: NextFunction): P
     try {
         const data = createMockApiSchema.parse(req.body);
 
-        const mockApi = await createMockApi(req.user!.userId, data);
+        const mockApi = await createMockApi(data);
 
         res.status(201).json({
             success: true,
@@ -26,7 +26,7 @@ export async function create(req: Request, res: Response, next: NextFunction): P
 
 export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        const mockApis = await getMockApis(req.user!.userId);
+        const mockApis = await getMockApis();
 
         res.status(200).json({
             success: true,
@@ -39,7 +39,7 @@ export async function getAll(req: Request, res: Response, next: NextFunction): P
 
 export async function getById(req: Request<MockApiParams>, res: Response, next: NextFunction): Promise<void> {
     try {
-        const mockApi = await getMockApiById(req.user!.userId, req.params.id);
+        const mockApi = await getMockApiById(req.params.id);
 
         if (!mockApi) {
             res.status(404).json({
@@ -63,7 +63,7 @@ export async function update(req: Request<MockApiParams>, res: Response, next: N
     try {
         const data = updateMockApiSchema.parse(req.body);
 
-        const mockApi = await updateMockApi(req.user!.userId, req.params.id, data);
+        const mockApi = await updateMockApi(req.params.id, data);
 
         if (!mockApi) {
             res.status(404).json({
@@ -86,17 +86,17 @@ export async function update(req: Request<MockApiParams>, res: Response, next: N
 
 export async function removeAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-        // Guard against accidental calls: deleting everything must be asked for explicitly.
+        // Guard against accidental calls: deleting every API must be asked for explicitly.
         if (req.query.confirm !== "all") {
             res.status(400).json({
                 success: false,
-                message: 'Add ?confirm=all to delete all of your APIs',
+                message: 'Add ?confirm=all to delete all APIs',
             });
 
             return;
         }
 
-        const deletedCount = await deleteAllMockApis(req.user!.userId);
+        const deletedCount = await deleteAllMockApis();
 
         res.status(200).json({
             success: true,
@@ -110,7 +110,7 @@ export async function removeAll(req: Request, res: Response, next: NextFunction)
 
 export async function remove(req: Request<MockApiParams>, res: Response, next: NextFunction): Promise<void> {
     try {
-        const deleted = await deleteMockApi(req.user!.userId, req.params.id);
+        const deleted = await deleteMockApi(req.params.id);
 
         if (!deleted) {
             res.status(404).json({

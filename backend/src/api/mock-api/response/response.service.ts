@@ -18,18 +18,16 @@ export type CreateResponseResult =
     | { status: "created"; response: MockResponseData };
 
 export async function createResponse(
-    userId: string,
     mockApiId: string,
     type: MockResponseType,
     data: ResponseDataInput,
 ): Promise<CreateResponseResult> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
+    if (!mongoose.isValidObjectId(mockApiId)) {
         return { status: "not-found" };
     }
 
     const mockApi = await MockApi.findOne({
         _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
     });
 
     if (!mockApi) {
@@ -50,35 +48,31 @@ export async function createResponse(
 }
 
 export async function getResponse(
-    userId: string,
     mockApiId: string,
     type: MockResponseType,
 ): Promise<MockResponseData | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
+    if (!mongoose.isValidObjectId(mockApiId)) {
         return null;
     }
 
     const mockApi = await MockApi.findOne({
         _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
     });
 
     return mockApi?.[getResponseField(type)] ?? null;
 }
 
 export async function updateResponse(
-    userId: string,
     mockApiId: string,
     type: MockResponseType,
     data: ResponseDataInput,
 ): Promise<MockResponseData | null> {
-    if (!mongoose.isValidObjectId(mockApiId) || !mongoose.isValidObjectId(userId)) {
+    if (!mongoose.isValidObjectId(mockApiId)) {
         return null;
     }
 
     const mockApi = await MockApi.findOne({
         _id: toObjectId(mockApiId),
-        userId: toObjectId(userId),
     });
 
     if (!mockApi) {
